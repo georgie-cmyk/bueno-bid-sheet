@@ -12,10 +12,18 @@ module.exports = async (req, res) => {
 
   res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
   try {
+    // Only directors linked to a Bueno roster company
+    const rosterFilter = 'OR(' + [
+      'BlinkInk','Canada','Drool','Framestore Pictures','Golden',
+      'Landia','Magna Studios','Object & Animal','RadicalMedia',
+      'Riff Raff','The Perlorian Brothers'
+    ].map(c => 'NOT({' + c + '}="")').join(',') + ')';
+    const formula = 'AND({Function}="DIRECTOR",' + rosterFilter + ')';
+
     let all = [], offset = '';
     do {
       const params = new URLSearchParams({
-        filterByFormula: '{Function}="DIRECTOR"',
+        filterByFormula: formula,
         'sort[0][field]': 'Name',
         'sort[0][direction]': 'asc'
       });
