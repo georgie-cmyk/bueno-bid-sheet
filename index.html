@@ -44,6 +44,11 @@
   .edit-input[type=date] { min-height: 26px; cursor: pointer; }
   select.edit-input { min-height: 26px; cursor: pointer; }
 
+  /* SPOT CELL EDIT MODE */
+  .editing [data-spot-title] { background: #f0f4ff !important; padding: 3px !important; }
+  .editing [data-spot-length], .editing [data-spot-deliverable] { cursor: pointer; user-select: none; }
+  .editing [data-spot-length]:hover, .editing [data-spot-deliverable]:hover { background: #e0eaff !important; }
+
   /* BOTTOM BAR */
   #edit-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 20px; font-size: 13px; z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,0.2); }
   #edit-bar button { padding: 6px 18px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: bold; }
@@ -116,10 +121,10 @@ var LENGTH_COLS = [':15',':30',':60',':90','Other'];
 var DELIVERABLE_COLS = ['Broadcast','VR','Online','Other'];
 var FIELD_TYPES = {
   date:'date',
-  directorsText:'textarea',
-  spotTitle:'textarea', spotNotes:'textarea', budget:'text',
+  directorsText:'datalist-directors',
+  spotNotes:'textarea', budget:'textarea',
   treatmentDue:'date', bidDue:'date', awardDate:'date',
-  shootDate:'text', shootLocation:'text',
+  shootDate:'textarea', shootLocation:'textarea',
   deliveryDate:'date', airDate:'date',
   launchCampaign:'textarea', references:'textarea',
   talent:'textarea', treatmentNotes:'textarea',
@@ -130,7 +135,10 @@ var FIELD_TYPES = {
   specialtyReel:'text'
 };
 var currentData = null;
-var peopleOptions = null; // cached list for dropdowns
+var peopleOptions = null;
+var directorsOptions = null;
+var editSpotLength = [];
+var editSpotDeliverables = [];
 
 function fmtDate(iso) {
   if (!iso) return '';
@@ -159,7 +167,6 @@ function secRow(t) { return '<tr class="row-section"><td colspan="10">'+esc(t)+'
 
 function buildSheet(d) {
   currentData = d;
-  // Derive directorsText from directors array if not already set as override
   if (d.directorsText === undefined) {
     d.directorsText = d.directors && d.directors.length
       ? d.directors.map(function(x){return x.name+(x.company?' / '+x.company:'');}).join('\n')
@@ -205,21 +212,20 @@ function buildSheet(d) {
   r.push('<tr class="row-spot-h2"><td></td>'+LENGTH_COLS.map(function(c){return '<td>'+c+'</td>';}).join('')+DELIVERABLE_COLS.map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>');
 
   var titles = d.spotTitle ? d.spotTitle.split('\n').map(function(s){return s.trim();}).filter(Boolean) : [];
-  titles.forEach(function(title,i){
-    var lc = LENGTH_COLS.map(function(col){return '<td>'+(i===0&&d.spotLength.indexOf(col)>=0?'<span class="check">&#x2717;</span>':'')+'</td>';}).join('');
-    var dc = DELIVERABLE_COLS.map(function(col){return '<td>'+(i===0&&d.spotDeliverables.indexOf(col)>=0?'<span class="check">&#x2717;</span>':'')+'</td>';}).join('');
-    var fa = i===0?' data-field="spotTitle" data-raw="'+escA(d.spotTitle)+'"':'';
-    r.push('<tr class="row-spot-data"><td'+fa+'>'+esc(title)+'</td>'+lc+dc+'</tr>');
-  });
-  var emptyCells = LENGTH_COLS.map(function(){return '<td></td>';}).join('')+DELIVERABLE_COLS.map(function(){return '<td></td>';}).join('');
-  var totalTarget = Math.max(5, titles.length + 3);
-  for (var i = titles.length; i < totalTarget; i++) {
-    var fa2 = i===0?' data-field="spotTitle" data-raw=""':'';
-    r.push('<tr class="row-spot-data"><td'+fa2+'>&nbsp;</td>'+emptyCells+'</tr>');
+  var totalSpotRows = Math.max(5, titles.length + 3);
+  for (var i = 0; i < totalSpotRows; i++) {
+    var title = titles[i] || '';
+    var lc = LENGTH_COLS.map(function(col){
+      return '<td data-spot-length="'+escA(col)+'">'+(i===0&&d.spotLength&&d.spotLength.indexOf(col)>=0?'<span class="check">&#x2717;</span>':'')+'</td>';
+    }).join('');
+    var dc = DELIVERABLE_COLS.map(function(col){
+      return '<td data-spot-deliverable="'+escA(col)+'">'+(i===0&&d.spotDeliverables&&d.spotDeliverables.indexOf(col)>=0?'<span class="check">&#x2717;</span>':'')+'</td>';
+    }).join('');
+    r.push('<tr class="row-spot-data"><td data-spot-title="'+i+'">'+(title?esc(title):'&nbsp;')+'</td>'+lc+dc+'</tr>');
   }
 
   r.push(makeRow('Notes:','<span style="white-space:pre-wrap">'+esc(d.spotNotes)+'</span>','spotNotes',d.spotNotes));
-  r.push(makeRow('Budget information:',esc(d.budget),'budget',d.budget));
+  r.push(makeRow('Budget information:','<span style="white-space:pre-wrap">'+esc(d.budget)+'</span>','budget',d.budget));
   var competitionArr = Array.isArray(d.competition) ? d.competition : (d.competition||'').split('\n').filter(Boolean);
   var competitionRaw = competitionArr.join('\n');
   var comp = competitionArr.length ? competitionArr.map(function(c){return '<div class="competition-item">&bull; '+esc(c)+'</div>';}).join('') : '';
@@ -247,7 +253,6 @@ function updateColour(val) {
   document.documentElement.style.setProperty('--brand', val);
   try { localStorage.setItem('bueno-brand', val); } catch(e) {}
 }
-
 function dismissColour(e) {
   e.preventDefault(); e.stopPropagation();
   document.getElementById('colour-wrap').style.display = 'none';
@@ -259,6 +264,15 @@ async function fetchPeopleOptions() {
   try {
     var r = await fetch('/api/people');
     if (r.ok) { peopleOptions = await r.json(); return peopleOptions; }
+  } catch(e) {}
+  return [];
+}
+
+async function fetchDirectorsOptions() {
+  if (directorsOptions) return directorsOptions;
+  try {
+    var r = await fetch('/api/directors');
+    if (r.ok) { directorsOptions = await r.json(); return directorsOptions; }
   } catch(e) {}
   return [];
 }
@@ -293,11 +307,26 @@ async function enterEditMode() {
         if (p.name === raw) opt.selected = true;
         el.appendChild(opt);
       });
-      // Also allow typing by falling back to a datalist if no match
       if (!people.find(function(p){return p.name===raw;}) && raw) {
         var opt2 = document.createElement('option');
         opt2.value = raw; opt2.textContent = raw; opt2.selected = true;
         el.insertBefore(opt2, blank.nextSibling);
+      }
+    } else if (type === 'datalist-directors') {
+      el = document.createElement('input'); el.type = 'text';
+      el.setAttribute('list', 'dir-datalist');
+      var dl = document.getElementById('dir-datalist');
+      if (!dl) {
+        dl = document.createElement('datalist');
+        dl.id = 'dir-datalist';
+        document.body.appendChild(dl);
+      }
+      if (!dl.children.length) {
+        fetchDirectorsOptions().then(function(dirs) {
+          dirs.forEach(function(d) {
+            var opt = document.createElement('option'); opt.value = d.name; dl.appendChild(opt);
+          });
+        });
       }
     } else {
       el = document.createElement('input'); el.type = 'text';
@@ -307,7 +336,59 @@ async function enterEditMode() {
     el.style.width = '100%';
     td.innerHTML = ''; td.style.whiteSpace = 'normal'; td.appendChild(el);
   });
-  document.getElementById('edit-status').textContent = 'Editing â unsaved';
+
+  document.querySelectorAll('[data-spot-title]').forEach(function(td) {
+    var content = td.textContent.trim();
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'edit-input';
+    inp.placeholder = 'Spot title…';
+    inp.value = (content === ' ' || content === '') ? '' : content;
+    td.innerHTML = '';
+    td.appendChild(inp);
+  });
+
+  editSpotLength = (currentData && currentData.spotLength) ? currentData.spotLength.slice() : [];
+  editSpotDeliverables = (currentData && currentData.spotDeliverables) ? currentData.spotDeliverables.slice() : [];
+
+  LENGTH_COLS.forEach(function(col) {
+    var checked = editSpotLength.indexOf(col) >= 0;
+    document.querySelectorAll('[data-spot-length="'+col+'"]').forEach(function(cell) {
+      cell.innerHTML = checked ? '<span class="check">&#x2717;</span>' : '';
+    });
+  });
+  DELIVERABLE_COLS.forEach(function(col) {
+    var checked = editSpotDeliverables.indexOf(col) >= 0;
+    document.querySelectorAll('[data-spot-deliverable="'+col+'"]').forEach(function(cell) {
+      cell.innerHTML = checked ? '<span class="check">&#x2717;</span>' : '';
+    });
+  });
+
+  document.querySelectorAll('[data-spot-length]').forEach(function(td) {
+    td.onclick = function() {
+      var val = this.getAttribute('data-spot-length');
+      var idx = editSpotLength.indexOf(val);
+      if (idx >= 0) editSpotLength.splice(idx, 1); else editSpotLength.push(val);
+      var checked = editSpotLength.indexOf(val) >= 0;
+      document.querySelectorAll('[data-spot-length="'+val+'"]').forEach(function(c) {
+        c.innerHTML = checked ? '<span class="check">&#x2717;</span>' : '';
+      });
+    };
+  });
+
+  document.querySelectorAll('[data-spot-deliverable]').forEach(function(td) {
+    td.onclick = function() {
+      var val = this.getAttribute('data-spot-deliverable');
+      var idx = editSpotDeliverables.indexOf(val);
+      if (idx >= 0) editSpotDeliverables.splice(idx, 1); else editSpotDeliverables.push(val);
+      var checked = editSpotDeliverables.indexOf(val) >= 0;
+      document.querySelectorAll('[data-spot-deliverable="'+val+'"]').forEach(function(c) {
+        c.innerHTML = checked ? '<span class="check">&#x2717;</span>' : '';
+      });
+    };
+  });
+
+  document.getElementById('edit-status').textContent = 'Editing — unsaved';
 }
 
 function exitEditMode(restore) {
@@ -316,6 +397,7 @@ function exitEditMode(restore) {
   document.getElementById('btn-save').style.display = 'none';
   document.getElementById('btn-cancel').style.display = 'none';
   document.getElementById('edit-status').textContent = '';
+  document.querySelectorAll('[data-spot-length],[data-spot-deliverable]').forEach(function(td) { td.onclick = null; });
   if (restore && currentData) document.getElementById('sheet-body').innerHTML = buildSheet(currentData);
 }
 
@@ -325,10 +407,22 @@ async function saveChanges() {
   document.getElementById('btn-save').disabled = true;
   document.getElementById('btn-cancel').disabled = true;
   var updates = {};
+
   document.querySelectorAll('td[data-field]').forEach(function(td) {
     var inp = td.querySelector('.edit-input');
     if (inp) updates[td.getAttribute('data-field')] = inp.value;
   });
+
+  var spotTitles = [];
+  document.querySelectorAll('[data-spot-title]').forEach(function(td) {
+    var inp = td.querySelector('input.edit-input');
+    if (inp && inp.value.trim()) spotTitles.push(inp.value.trim());
+  });
+  updates['spotTitle'] = spotTitles.join('\n');
+
+  updates['spotLength'] = JSON.stringify(editSpotLength);
+  updates['spotDeliverables'] = JSON.stringify(editSpotDeliverables);
+
   try {
     var id = new URLSearchParams(window.location.search).get('id');
     var res = await fetch('/api/lead?id='+encodeURIComponent(id), {
@@ -336,12 +430,16 @@ async function saveChanges() {
     });
     var body = await res.json();
     if (!res.ok) throw new Error(body.error || 'Save failed');
-    Object.keys(updates).forEach(function(k){ if (currentData) currentData[k] = updates[k]; });
+    Object.keys(updates).forEach(function(k){
+      if (k === 'spotLength') { if (currentData) currentData[k] = editSpotLength.slice(); }
+      else if (k === 'spotDeliverables') { if (currentData) currentData[k] = editSpotDeliverables.slice(); }
+      else if (currentData) currentData[k] = updates[k];
+    });
     exitEditMode(true);
-    document.getElementById('edit-status').textContent = 'â Saved';
+    document.getElementById('edit-status').textContent = '✓ Saved';
     setTimeout(function(){ document.getElementById('edit-status').textContent = ''; }, 3000);
   } catch(err) {
-    status.textContent = 'â ' + err.message;
+    status.textContent = '✗ ' + err.message;
     document.getElementById('btn-save').disabled = false;
     document.getElementById('btn-cancel').disabled = false;
   }
@@ -365,11 +463,11 @@ async function init() {
     if (!res.ok) { var b = await res.json().catch(function(){return{};}); throw new Error(b.error||'HTTP '+res.status); }
     var data = await res.json();
     document.getElementById('sheet-body').innerHTML = buildSheet(data);
-    document.title = 'Bueno Bid Spec'+(data.client?' â '+data.client:'');
+    document.title = 'Bueno Bid Spec'+(data.client?' — '+data.client:'');
     document.getElementById('loading').style.display = 'none';
     document.getElementById('sheet-wrap').style.display = 'block';
-    // Pre-fetch people in the background so the dropdown is instant
     fetchPeopleOptions();
+    fetchDirectorsOptions();
   } catch(err) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error').style.display = 'flex';
