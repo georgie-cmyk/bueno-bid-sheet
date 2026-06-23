@@ -115,7 +115,12 @@ var FIELD_TYPES = {
   shootDate:'text', shootLocation:'text',
   deliveryDate:'date', airDate:'date',
   launchCampaign:'textarea', references:'textarea',
-  talent:'textarea', treatmentNotes:'textarea'
+  talent:'textarea', treatmentNotes:'textarea',
+  client:'text', assignedTo:'text',
+  agency:'text', agencyAddress:'textarea', agencyPhone:'text',
+  producerName:'text', producerDirectLine:'text', producerMobile:'text', producerEmail:'text',
+  creatives:'textarea', competition:'textarea',
+  specialtyReel:'text'
 };
 var currentData = null;
 
@@ -145,20 +150,22 @@ function buildSheet(d) {
   r.push('<tr class="row-masthead"><td colspan="10">BUENO BID SPECS SHEET</td></tr>');
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
   var dv = d.directors.length ? d.directors.map(function(x){return x.name+(x.company?' / '+x.company:'');}).join('\n') : '';
-  r.push('<tr class="row-info-val"><td colspan="1">'+esc(fmtDate(d.date))+'</td><td colspan="3" style="white-space:pre-wrap">'+esc(dv)+'</td><td colspan="4">'+esc(d.client)+'</td><td colspan="2">'+esc(d.assignedTo)+'</td></tr>');
+  r.push('<tr class="row-info-val"><td colspan="1">'+esc(fmtDate(d.date))+'</td><td colspan="3" style="white-space:pre-wrap">'+esc(dv)+'</td><td colspan="4" data-field="client" data-raw="'+escA(d.client)+'">'+esc(d.client)+'</td><td colspan="2" data-field="assignedTo" data-raw="'+escA(d.assignedTo)+'">'+esc(d.assignedTo)+'</td></tr>');
 
   r.push(secRow('Agency Info / Personnel / Contact'));
-  r.push(makeRow('Agency:',esc(d.agency)));
-  r.push(makeRow('Address:',esc(d.agencyAddress)));
-  r.push(makeRow('Phone:',esc(d.agencyPhone)));
-  r.push(makeRow('Producer:',esc(d.producerName)));
-  r.push(makeRow('Direct line:',esc(d.producerDirectLine)));
-  r.push(makeRow('Mobile:',esc(d.producerMobile)));
-  r.push(makeRow('Email:',d.producerEmail?'<a href="mailto:'+esc(d.producerEmail)+'">'+esc(d.producerEmail)+'</a>':''));
-  var ch = d.creatives.length ? d.creatives.map(function(c){
+  r.push(makeRow('Agency:',esc(d.agency),'agency',d.agency));
+  r.push(makeRow('Address:',esc(d.agencyAddress),'agencyAddress',d.agencyAddress));
+  r.push(makeRow('Phone:',esc(d.agencyPhone),'agencyPhone',d.agencyPhone));
+  r.push(makeRow('Producer:',esc(d.producerName),'producerName',d.producerName));
+  r.push(makeRow('Direct line:',esc(d.producerDirectLine),'producerDirectLine',d.producerDirectLine));
+  r.push(makeRow('Mobile:',esc(d.producerMobile),'producerMobile',d.producerMobile));
+  r.push(makeRow('Email:',d.producerEmail?'<a href="mailto:'+esc(d.producerEmail)+'">'+esc(d.producerEmail)+'</a>':'','producerEmail',d.producerEmail));
+  var creativesArr = Array.isArray(d.creatives) ? d.creatives : (d.creatives||'').split('\n').filter(Boolean).map(function(l){var p=l.split(' - ');return{name:p[0]||'',linkedin:p.slice(1).join(' - ')};});
+  var creativesRaw = creativesArr.map(function(c){return c.name+(c.linkedin?' - '+c.linkedin:'');}).join('\n');
+  var ch = creativesArr.length ? creativesArr.map(function(c){
     return '<span class="creative-item">&bull; '+esc(c.name)+(c.linkedin?' &ndash; <a href="'+esc(c.linkedin)+'" target="_blank">'+esc(c.linkedin)+'</a>':'')+'</span>';
   }).join('') : '';
-  r.push(makeRow('Creative Team:',ch));
+  r.push(makeRow('Creative Team:',ch,'creatives',creativesRaw));
 
   r.push(secRow('Spot Information'));
   r.push('<tr class="row-spot-h1"><td>Title</td><td colspan="5" style="text-align:center">Length</td><td colspan="4" style="text-align:center">Deliverables</td></tr>');
@@ -181,8 +188,10 @@ function buildSheet(d) {
 
   r.push(makeRow('Notes:','<span style="white-space:pre-wrap">'+esc(d.spotNotes)+'</span>','spotNotes',d.spotNotes));
   r.push(makeRow('Budget information:',esc(d.budget),'budget',d.budget));
-  var comp = d.competition.length ? d.competition.map(function(c){return '<div class="competition-item">&bull; '+esc(c)+'</div>';}).join('') : '';
-  r.push(makeRow('Director competition:',comp));
+  var competitionArr = Array.isArray(d.competition) ? d.competition : (d.competition||'').split('\n').filter(Boolean);
+  var competitionRaw = competitionArr.join('\n');
+  var comp = competitionArr.length ? competitionArr.map(function(c){return '<div class="competition-item">&bull; '+esc(c)+'</div>';}).join('') : '';
+  r.push(makeRow('Director competition:',comp,'competition',competitionRaw));
   r.push(makeRow('Treatment due:',esc(fmtDateLong(d.treatmentDue)),'treatmentDue',d.treatmentDue));
   r.push(makeRow('Bid due:',esc(fmtDateLong(d.bidDue)),'bidDue',d.bidDue));
   r.push(makeRow('Award date:',esc(fmtDateLong(d.awardDate)),'awardDate',d.awardDate));
@@ -197,7 +206,7 @@ function buildSheet(d) {
   r.push(makeRow('Talent:','<span style="white-space:pre-wrap">'+esc(d.talent)+'</span>','talent',d.talent));
 
   r.push(secRow('General Information'));
-  r.push(makeRow('Specialty reel created?:',d.specialtyReel?'<a href="'+esc(d.specialtyReel)+'" target="_blank">'+esc(d.specialtyReel)+'</a>':''));
+  r.push(makeRow('Specialty reel created?:',d.specialtyReel?'<a href="'+esc(d.specialtyReel)+'" target="_blank">'+esc(d.specialtyReel)+'</a>':'','specialtyReel',d.specialtyReel));
   r.push(makeRow('Any other useful info for treatment or calls?','<span style="white-space:pre-wrap">'+esc(d.treatmentNotes)+'</span>','treatmentNotes',d.treatmentNotes));
   return r.join('\n');
 }
@@ -296,6 +305,3 @@ async function init() {
 }
 
 init();
-</script>
-</body>
-</html>
