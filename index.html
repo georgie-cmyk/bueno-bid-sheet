@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bueno Bid Spec</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    background: #f0f0f0;
+    color: #000;
+  }
+
+  #loading, #error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-size: 14px;
+    color: #555;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #error { color: #c00; }
+
+  #sheet-wrap {
+    display: none;
+    max-width: 1100px;
+    margin: 24px auto;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+
+  table.sheet {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  table.sheet col.c-title  { width: 22%; }
+  table.sheet col.c-narrow { width: 7.5%; }
+
+  table.sheet td {
+    border: 1px solid #9FA8B0;
+    padding: 5px 8px;
+    vertical-align: top;
+    line-height: 1.4;
+    word-wrap: break-word;
+  }
+
+  /* ── TITLE ROW ── */
+  .row-masthead td {
+    background: #1F3864;
+    color: #fff;
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    padding: 10px 12px;
+    text-align: left;
+    border-color: #1F3864;
+  }
+
+  /* ── SECTION HEADER ── */
+  .row-section td {
+    background: #2F5496;
+    color: #fff;
+    font-weight: bold;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 8px;
+    border-color: #2F5496;
+  }
+
+  /* ── INFO HEADER (Date / Director / Client / Sales Rep labels) ── */
+  .row-info-hdr td {
+    background: #2F5496;
+    color: #fff;
+    font-weight: bold;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: center;
+    padding: 4px 8px;
+    border-color: #1F3864;
+  }
+
+  /* ── INFO VALUES (the actual date/director/client/sales rep) ── */
+  .row-info-val td {
+    background: #D9E1F2;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 6px 8px;
+    text-align: center;
+    border-color: #9FA8B0;
+  }
+
+  /* ── LABEL CELL ── */
+  td.label {
+    background: #D9E1F2;
+    font-weight: bold;
+    font-size: 11px;
+    white-space: nowrap;
+    vertical-align: top;
+    padding: 5px 8px;
+    color: #1F3864;
+  }
+
+  /* ── DATA CELL ── */
+  td.data {
+    background: #fff;
+    white-space: pre-wrap;
+  }
+
+  /* ── SPOT GRID HEADER ROW 1 (Title / Length / Deliverables) ── */
+  .row-spot-h1 td {
+    background: #BDD7EE;
+    font-weight: bold;
+    font-size: 11px;
+    text-align: center;
+    padding: 4px 6px;
+    border-color: #9FA8B0;
+  }
+  .row-spot-h1 td:first-child {
+    background: #D9E1F2;
+    text-align: left;
+    font-size: 11px;
+    color: #1F3864;
+  }
+
+  /* ── SPOT GRID HEADER ROW 2 (the actual :15 / :30 etc column labels) ── */
+  .row-spot-h2 td {
+    background: #BDD7EE;
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    padding: 3px 4px;
+    border-color: #9FA8B0;
+  }
+  .row-spot-h2 td:first-child {
+    background: #D9E1F2;
+  }
+
+  /* ── SPOT DATA ROW ── */
+  .row-spot-data td {
+    background: #fff;
+    text-align: center;
+    font-size: 12px;
+    padding: 4px 4px;
+    border-color: #9FA8B0;
+    vertical-align: middle;
+  }
+  .row-spot-data td:first-child {
+    text-align: left;
+    font-size: 11px;
+    font-weight: bold;
+    white-space: pre-wrap;
+    vertical-align: top;
+    padding: 5px 8px;
+  }
+  .check { font-size: 14px; font-weight: bold; color: #1F3864; }
+
+  /* ── COMPETITION CELL ── */
+  .competition-item { margin-bottom: 2px; }
+
+  /* ── LINK STYLE ── */
+  a { color: #1155CC; text-decoration: underline; word-break: break-all; }
+
+  /* ── CREATIVE TEAM ── */
+  .creative-item { display: block; margin-bottom: 2px; }
+
+  @media print {
+    body { background: #fff; }
+    #sheet-wrap {
+      max-width: 100%;
+      margin: 0;
+      box-shadow: none;
+    }
+    .row-masthead td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .row-section td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .row-info-hdr td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .row-info-val td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    td.label { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .row-spot-h1 td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .row-spot-h2 td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <svg width="32" height="32" viewBox="0 0 32 32" style="animation:spin 1s linear infinite">
+    <circle cx="16" cy="16" r="12" fill="none" stroke="#2F5496" stroke-width="3" stroke-dasharray="56" stroke-dashoffset="14"/>
+  </svg>
+  Loading bid spec…
+</div>
+
+<div id="error" style="display:none">
+  <strong>Bid spec not found.</strong>
+  <span id="error-detail" style="font-size:12px;color:#888;"></span>
+</div>
+
+<div id="sheet-wrap">
+  <table class="sheet">
+    <!-- 10 cols: title | :15 | :30 | :60 | :90 | Other-L | Broadcast | VR | Online | Other-D -->
+    <colgroup>
+      <col class="c-title">
+      <col class="c-narrow"><col class="c-narrow"><col class="c-narrow">
+      <col class="c-narrow"><col class="c-narrow"><col class="c-narrow">
+      <col class="c-narrow"><col class="c-narrow"><col class="c-narrow">
+    </colgroup>
+
+    <tbody id="sheet-body"></tbody>
+  </table>
+</div>
+
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<script>
+const LENGTH_COLS      = [':15', ':30', ':60', ':90', 'Other'];
+const DELIVERABLE_COLS = ['Broadcast', 'VR', 'Online', 'Other'];
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${parseInt(m)}.${d}.${y.slice(2)}`;
+}
+
+function fmtDateLong(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
+  } catch { return iso; }
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function makeRow(labelHtml, valueHtml, labelColspan = 1, valueColspan = 9) {
+  return `<tr><td class="label" colspan="${labelColspan}">${labelHtml}</td><td class="data" colspan="${valueColspan}">${valueHtml}</td></tr>`;
+}
+
+function sectionRow(title) {
+  return `<tr class="row-section"><td colspan="10">${esc(title)}</td></tr>`;
+}
+
+function buildSheet(d) {
+  const rows = [];
+
+  // ── MASTHEAD ──
+  rows.push(`<tr class="row-masthead"><td colspan="10">BUENO BID SPECS SHEET</td></tr>`);
+
+  // ── INFO HEADER ──
+  rows.push(`<tr class="row-info-hdr">
+    <td colspan="1">Date</td>
+    <td colspan="3">Director</td>
+    <td colspan="4">Client / Project</td>
+    <td colspan="2">Sales Rep</td>
+  </tr>`);
+
+  // ── INFO VALUES ──
+  const directorVal = d.directors.length
+    ? d.directors.map(dr => dr.name + (dr.company ? ` / ${dr.company}` : '')).join('\n')
+    : '';
+  rows.push(`<tr class="row-info-val">
+    <td colspan="1">${esc(fmtDate(d.date))}</td>
+    <td colspan="3" style="white-space:pre-wrap">${esc(directorVal)}</td>
+    <td colspan="4">${esc(d.client)}</td>
+    <td colspan="2">${esc(d.assignedTo)}</td>
+  </tr>`);
+
+  // ── AGENCY INFO ──
+  rows.push(sectionRow('Agency Info / Personnel / Contact'));
+  rows.push(makeRow('Agency:', esc(d.agency)));
+  rows.push(makeRow('Address:', esc(d.agencyAddress)));
+  rows.push(makeRow('Phone:', esc(d.agencyPhone)));
+  rows.push(makeRow('Producer:', esc(d.producerName)));
+  rows.push(makeRow('Direct line:', esc(d.producerDirectLine)));
+  rows.push(makeRow('Mobile:', esc(d.producerMobile)));
+  rows.push(makeRow('Email:', d.producerEmail
+    ? `<a href="mailto:${esc(d.producerEmail)}">${esc(d.producerEmail)}</a>`
+    : ''));
+
+  const creativesHtml = d.creatives.length
+    ? d.creatives.map(c => {
+        const nameStr = esc(c.name);
+        const link = c.linkedin
+          ? ` &ndash; <a href="${esc(c.linkedin)}" target="_blank">${esc(c.linkedin)}</a>`
+          : '';
+        return `<span class="creative-item">&bull; ${nameStr}${link}</span>`;
+      }).join('')
+    : '';
+  rows.push(makeRow('Creative Team:', creativesHtml));
+
+  // ── SPOT INFORMATION ──
+  rows.push(sectionRow('Spot Information'));
+
+  // Spot sub-header row 1
+  rows.push(`<tr class="row-spot-h1">
+    <td>Title</td>
+    <td colspan="5" style="text-align:center">Length</td>
+    <td colspan="4" style="text-align:center">Deliverables</td>
+  </tr>`);
+
+  // Spot sub-header row 2
+  const lenCols = LENGTH_COLS.map(c => `<td>${esc(c)}</td>`).join('');
+  const delCols = DELIVERABLE_COLS.map(c => `<td>${esc(c)}</td>`).join('');
+  rows.push(`<tr class="row-spot-h2"><td></td>${lenCols}${delCols}</tr>`);
+
+  // Spot data rows
+  const spotTitles = d.spotTitle
+    ? d.spotTitle.split('\n').map(s => s.trim()).filter(Boolean)
+    : [''];
+
+  spotTitles.forEach((title, i) => {
+    const lenCells = LENGTH_COLS.map(col => {
+      const checked = i === 0 && d.spotLength.includes(col);
+      return `<td>${checked ? '<span class="check">✗</span>' : ''}</td>`;
+    }).join('');
+    const delCells = DELIVERABLE_COLS.map(col => {
+      const checked = i === 0 && d.spotDeliverables.includes(col);
+      return `<td>${checked ? '<span class="check">✗</span>' : ''}</td>`;
+    }).join('');
+    rows.push(`<tr class="row-spot-data"><td>${esc(title)}</td>${lenCells}${delCells}</tr>`);
+  });
+
+  // Extra empty spot row
+  rows.push(`<tr class="row-spot-data"><td>&nbsp;</td>${LENGTH_COLS.map(() => '<td></td>').join('')}${DELIVERABLE_COLS.map(() => '<td></td>').join('')}</tr>`);
+
+  // ── NOTES ──
+  rows.push(makeRow('Notes:', `<span style="white-space:pre-wrap">${esc(d.spotNotes)}</span>`));
+
+  // ── TIMELINE / BUDGET ──
+  rows.push(makeRow('Budget information:', esc(d.budget)));
+
+  const compHtml = d.competition.length
+    ? d.competition.map(c => `<div class="competition-item">&bull; ${esc(c)}</div>`).join('')
+    : '';
+  rows.push(makeRow('Director competition:', compHtml));
+
+  rows.push(makeRow('Treatment due:', esc(fmtDateLong(d.treatmentDue))));
+  rows.push(makeRow('Bid due:', esc(fmtDateLong(d.bidDue))));
+  rows.push(makeRow('Award date:', esc(fmtDateLong(d.awardDate))));
+  rows.push(makeRow('Shoot dates:', esc(d.shootDate)));
+  rows.push(makeRow('Location:', esc(d.shootLocation)));
+  rows.push(makeRow('Delivery date:', esc(fmtDateLong(d.deliveryDate))));
+  rows.push(makeRow('Air date:', esc(fmtDateLong(d.airDate))));
+
+  // ── CAMPAIGN INFORMATION ──
+  rows.push(sectionRow('Campaign Information'));
+  rows.push(makeRow('Launch or previous campaign:', `<span style="white-space:pre-wrap">${esc(d.launchCampaign)}</span>`));
+  rows.push(makeRow('References:', `<span style="white-space:pre-wrap">${esc(d.references)}</span>`));
+  rows.push(makeRow('Talent:', `<span style="white-space:pre-wrap">${esc(d.talent)}</span>`));
+
+  // ── GENERAL INFORMATION ──
+  rows.push(sectionRow('General Information'));
+  rows.push(makeRow('Specialty reel created?:',
+    d.specialtyReel
+      ? `<a href="${esc(d.specialtyReel)}" target="_blank">${esc(d.specialtyReel)}</a>`
+      : ''));
+  rows.push(makeRow('Any other useful info for treatment or calls?',
+    `<span style="white-space:pre-wrap">${esc(d.treatmentNotes)}</span>`));
+
+  return rows.join('\n');
+}
+
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if (!id || !/^rec[A-Za-z0-9]{14}$/.test(id)) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'flex';
+    document.getElementById('error-detail').textContent = 'No valid record ID in URL. Add ?id=RECORD_ID to the URL.';
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/lead?id=${encodeURIComponent(id)}`);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+
+    document.getElementById('sheet-body').innerHTML = buildSheet(data);
+    document.title = `Bueno Bid Spec${data.client ? ' — ' + data.client : ''}`;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('sheet-wrap').style.display = 'block';
+  } catch (err) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'flex';
+    document.getElementById('error-detail').textContent = err.message;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
