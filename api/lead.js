@@ -19,6 +19,8 @@ const WRITABLE = {
   references: 'References',
   talent: 'Talent',
   treatmentNotes: 'Treatment Notes',
+  client: 'Client',
+  specialtyReel: 'Specialty Reel Created',
 };
 
 async function atGet(path, token) {
@@ -72,7 +74,7 @@ module.exports = async (req, res) => {
       for (const [key, val] of Object.entries(updates)) {
         if (WRITABLE[key] !== undefined) fields[WRITABLE[key]] = val || null;
       }
-      if (!Object.keys(fields).length) return res.status(400).json({ error: 'No writable fields provided' });
+      if (!Object.keys(fields).length) return res.status(200).json({ ok: true });
       await atPatch(qid, fields, token);
       return res.status(200).json({ ok: true });
     } catch (err) { return res.status(500).json({ error: err.message }); }
