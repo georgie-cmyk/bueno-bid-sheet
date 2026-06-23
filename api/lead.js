@@ -21,6 +21,7 @@ const WRITABLE = {
   treatmentNotes: 'Treatment Notes',
   client: 'Client',
   specialtyReel: 'Specialty Reel Created',
+  date: 'Bid Sheet Date',
 };
 
 async function atGet(path, token) {
@@ -74,6 +75,17 @@ module.exports = async (req, res) => {
       for (const [key, val] of Object.entries(updates)) {
         if (WRITABLE[key] !== undefined) fields[WRITABLE[key]] = val || null;
       }
+      if (updates.assignedTo && updates.assignedTo.trim()) {
+        const name = updates.assignedTo.trim();
+        const formula = "Name='" + name.replace(/'/g, "\\'"  ) + "'";
+        try {
+          const people = await atGet(PEOPLE_TABLE + '?filterByFormula=' + encodeURIComponent(formula) + '&maxRecords=1', token);
+          if (people.records && people.records.length > 0) {
+            fields['Assigned To'] = [people.records[0].id];
+            delete fields[WRITABLE['assignedTo']];
+          }
+        } catch(e) { /* skip */ }
+      }
       if (!Object.keys(fields).length) return res.status(200).json({ ok: true });
       await atPatch(qid, fields, token);
       return res.status(200).json({ ok: true });
@@ -109,7 +121,7 @@ module.exports = async (req, res) => {
       producerDirectLine: producerRecs.map(r => r.fields['Phone (Cell)']).filter(Boolean).join(', '),
       producerMobile: producerRecs.map(r => r.fields['Mobile']).filter(Boolean).join(', '),
       producerEmail,
-      creatives: creativeRecs.map(r => ({ name: r.fields['Name'] || '', linkedin: r.fields['LinkedIn'] || '' })),
+      creatives: creativeRecs.map(r => ({ name: r.fields['Name'] || '', linkedin: r.fields['LinkedIn'] || '', email: r.fields['Email'] || r.fields['Work Email'] || '' })),
       directors, competition: competitionRecs.map(r => r.fields['Name']).filter(Boolean),
       spotTitle: f['Spot Title'] || '', spotLength: selectNames(f['Spot Length']),
       spotDeliverables: selectNames(f['Spot Deliverables']), spotNotes: f['Spot Notes'] || '',
