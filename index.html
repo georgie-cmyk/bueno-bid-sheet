@@ -5,12 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bueno Bid Spec</title>
 <style>
-  :root { --brand: #1F3864; --brand-mid: color-mix(in srgb, var(--brand) 70%, white); --brand-light: color-mix(in srgb, var(--brand) 20%, white); --brand-xlight: color-mix(in srgb, var(--brand) 12%, white); }
+  :root {
+    --brand: #1F3864;
+    --brand-mid:    color-mix(in srgb, var(--brand) 70%, white);
+    --brand-light:  color-mix(in srgb, var(--brand) 20%, white);
+    --brand-xlight: color-mix(in srgb, var(--brand) 12%, white);
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; background: #f0f0f0; color: #000; }
-  #loading, #error { display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 14px; color: #555; flex-direction: column; gap: 12px; }
+  #loading, #error {
+    display: flex; align-items: center; justify-content: center;
+    height: 100vh; font-size: 14px; color: #555; flex-direction: column; gap: 12px;
+  }
   #error { color: #c00; }
-  #sheet-wrap { display: none; max-width: 1100px; margin: 24px auto 80px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+  #sheet-wrap {
+    display: none; max-width: 1100px; margin: 24px auto 80px;
+    background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
   table.sheet { width: 100%; border-collapse: collapse; table-layout: fixed; }
   table.sheet col.c-title  { width: 22%; }
   table.sheet col.c-narrow { width: 7.5%; }
@@ -30,46 +41,38 @@
   .check { font-size: 14px; font-weight: bold; color: var(--brand); }
   .competition-item { margin-bottom: 2px; }
   a { color: #1155CC; text-decoration: underline; word-break: break-all; }
-  .creative-item { display: block; margin-bottom: 4px; }
-  .creative-toggle { background: none; border: 1px solid var(--brand-mid); color: var(--brand); font-size: 10px; border-radius: 3px; padding: 1px 5px; cursor: pointer; margin-left: 6px; vertical-align: middle; }
-  .creative-toggle:hover { background: var(--brand-light); }
-  .creative-card { display: none; background: var(--brand-xlight); border: 1px solid var(--brand-mid); border-radius: 4px; padding: 6px 8px; margin: 4px 0 4px 12px; font-size: 11px; line-height: 1.6; }
-  .creative-card.open { display: block; }
-  .creative-card a { font-size: 11px; }
+  .creative-item { display: block; margin-bottom: 2px; }
+  .contact-link { color: var(--brand); text-decoration: underline; font-weight: bold; }
+  .contact-link:hover { text-decoration: none; }
 
   /* EDIT MODE */
   .edit-input { width: 100%; font-family: Arial, Helvetica, sans-serif; font-size: 12px; padding: 2px 4px; border: 1px solid #2F5496; border-radius: 2px; background: #fff; resize: vertical; min-height: 24px; }
   .edit-input:focus { outline: 2px solid #2F5496; }
   .editing td[data-field] { background: #f0f4ff !important; }
-  .edit-input[type=date] { min-height: 26px; cursor: pointer; }
-  select.edit-input { min-height: 26px; cursor: pointer; }
 
-  /* SPOT CELL EDIT MODE */
-  .editing [data-spot-title] { background: #f0f4ff !important; padding: 3px !important; }
-  .editing [data-spot-length], .editing [data-spot-deliverable] { cursor: pointer; user-select: none; }
-  .editing [data-spot-length]:hover, .editing [data-spot-deliverable]:hover { background: #e0eaff !important; }
+  /* Spot cells in edit mode */
+  .editing td[data-spot-type] { cursor: pointer; }
+  .editing td[data-spot-type]:hover { background: var(--brand-xlight) !important; }
+  td[data-spot-type].spot-checked { background: var(--brand-light) !important; }
 
   /* BOTTOM BAR */
   #edit-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 20px; font-size: 13px; z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,0.2); }
   #edit-bar button { padding: 6px 18px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: bold; }
-  #btn-edit { background: rgba(255,255,255,0.9); color: var(--brand); }
-  #btn-save { background: #4CAF50; color: #fff; }
+  #btn-edit   { background: rgba(255,255,255,0.9); color: var(--brand); }
+  #btn-save   { background: #4CAF50; color: #fff; }
   #btn-cancel { background: rgba(255,255,255,0.3); color: #fff; }
-  #btn-print { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
-  #btn-print:hover { background: rgba(255,255,255,0.25); }
   #colour-wrap { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
   #colour-wrap input[type=color] { width: 22px; height: 22px; padding: 0; border: none; cursor: pointer; border-radius: 3px; }
   #btn-dismiss-colour { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; font-weight: bold; }
   #btn-dismiss-colour:hover { color: #fff; }
+  #btn-print  { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+  #btn-print:hover { background: rgba(255,255,255,0.25); }
   #edit-status { font-size: 12px; min-width: 140px; text-align: center; }
 
   @media print {
     body { background: #fff; }
-    #sheet-wrap { max-width: 100%; margin: 0; box-shadow: none; display: block !important; }
-    #loading, #error { display: none !important; }
+    #sheet-wrap { max-width: 100%; margin: 0; box-shadow: none; }
     #edit-bar { display: none !important; }
-    .creative-toggle { display: none !important; }
-    .creative-card { display: block !important; }
     .row-masthead td, .row-section td, .row-info-hdr td, .row-info-val td,
     td.label, .row-spot-h1 td, .row-spot-h2 td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
@@ -102,153 +105,209 @@
 </div>
 
 <div id="edit-bar">
-  <button id="btn-edit" onclick="enterEditMode()">&#9998; Edit</button>
-  <button id="btn-save" style="display:none" onclick="saveChanges()">&#128190; Save changes</button>
+  <button id="btn-edit"   onclick="enterEditMode()">&#9998; Edit</button>
+  <button id="btn-save"   style="display:none" onclick="saveChanges()">&#128190; Save changes</button>
   <button id="btn-cancel" style="display:none" onclick="exitEditMode(true)">&#10005; Cancel</button>
-  <button id="btn-print" onclick="window.print()">&#128438; PDF</button>
+  <button id="btn-print"  onclick="window.print()">&#128438; PDF</button>
   <label id="colour-wrap" title="Change brand colour">
     &#127912; Colour
     <input type="color" id="brand-colour" value="#1F3864" oninput="updateColour(this.value)">
-    <button id="btn-dismiss-colour" onclick="dismissColour(event)" title="Hide colour picker">&#10005;</button>
+    <button id="btn-dismiss-colour" onclick="dismissColour(event)" title="Hide">&#10005;</button>
   </label>
   <span id="edit-status"></span>
 </div>
 
+<!-- Datalists for autocomplete -->
+<datalist id="dl-directors"></datalist>
+
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
 <script>
-var LENGTH_COLS = [':15',':30',':60',':90','Other'];
+var LENGTH_COLS      = [':15',':30',':60',':90','Other'];
 var DELIVERABLE_COLS = ['Broadcast','VR','Online','Other'];
+
+var AIRTABLE_BASE    = 'appb2j15wK5KPtFF3';
+var AIRTABLE_PEOPLE  = 'tblX85mK7o9AMp8Uy';
+
 var FIELD_TYPES = {
-  date:'date',
-  directorsText:'datalist-directors',
-  spotNotes:'textarea', budget:'textarea',
+  spotTitle:'textarea', spotNotes:'textarea', budget:'text',
   treatmentDue:'date', bidDue:'date', awardDate:'date',
-  shootDate:'textarea', shootLocation:'textarea',
+  shootDate:'text', shootLocation:'text',
   deliveryDate:'date', airDate:'date',
   launchCampaign:'textarea', references:'textarea',
   talent:'textarea', treatmentNotes:'textarea',
-  client:'text', assignedTo:'select-people',
+  client:'text', assignedTo:'select',
   agency:'text', agencyAddress:'textarea', agencyPhone:'text',
   producerName:'text', producerDirectLine:'text', producerMobile:'text', producerEmail:'text',
   creatives:'textarea', competition:'textarea',
   specialtyReel:'text'
 };
-var currentData = null;
-var peopleOptions = null;
-var directorsOptions = null;
-var editSpotLength = [];
-var editSpotDeliverables = [];
 
+var currentData  = null;
+var spotGridEdit = {};  // rowIndex -> { l: [...], d: [...] }
+var NUM_SPOT_ROWS = 5;
+
+/* ── UTILITIES ─────────────────────────────────────────────── */
 function fmtDate(iso) {
   if (!iso) return '';
   var p = iso.split('-');
-  return parseInt(p[1])+'.'+p[2]+'.'+p[0].slice(2);
+  return parseInt(p[1]) + '.' + p[2] + '.' + p[0].slice(2);
 }
 function fmtDateLong(iso) {
   if (!iso) return '';
-  try { return new Date(iso+'T12:00:00').toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'2-digit'}); }
+  try { return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {month:'numeric',day:'numeric',year:'2-digit'}); }
   catch(e) { return iso; }
 }
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escA(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/\n/g,'&#10;'); }
-
-function toggleCreativeCard(id) {
-  var card = document.getElementById('cc-'+id);
-  if (card) card.classList.toggle('open');
+function atLink(recordId) {
+  return 'https://airtable.com/' + AIRTABLE_BASE + '/' + AIRTABLE_PEOPLE + '/' + recordId;
 }
 
 function makeRow(lbl, val, fkey, raw, lspan, vspan) {
-  lspan = lspan||1; vspan = vspan||9;
-  var da = fkey ? ' data-field="'+fkey+'" data-raw="'+escA(raw||'')+'"' : '';
-  return '<tr><td class="label" colspan="'+lspan+'">'+lbl+'</td><td class="data" colspan="'+vspan+'"'+da+'>'+val+'</td></tr>';
+  lspan = lspan || 1; vspan = vspan || 9;
+  var da = fkey ? ' data-field="' + fkey + '" data-raw="' + escA(raw || '') + '"' : '';
+  return '<tr><td class="label" colspan="' + lspan + '">' + lbl + '</td><td class="data" colspan="' + vspan + '"' + da + '>' + val + '</td></tr>';
 }
-function secRow(t) { return '<tr class="row-section"><td colspan="10">'+esc(t)+'</td></tr>'; }
+function secRow(t) { return '<tr class="row-section"><td colspan="10">' + esc(t) + '</td></tr>'; }
 
+/* ── SPOT GRID HELPERS ─────────────────────────────────────── */
+// Derive per-row grid from API data
+function buildInitialGrid(d) {
+  var grid = [];
+  var numRows = Math.max(NUM_SPOT_ROWS, d.spotTitle ? d.spotTitle.split('\n').filter(Boolean).length : 0);
+  numRows = Math.max(numRows, NUM_SPOT_ROWS);
+  for (var i = 0; i < NUM_SPOT_ROWS; i++) {
+    if (d.spotGrid && d.spotGrid[i]) {
+      grid.push({ l: d.spotGrid[i].l || [], d: d.spotGrid[i].d || [] });
+    } else if (i === 0 && !d.spotGrid) {
+      // Legacy: first row inherits the global spotLength / spotDeliverables
+      grid.push({ l: d.spotLength || [], d: d.spotDeliverables || [] });
+    } else {
+      grid.push({ l: [], d: [] });
+    }
+  }
+  return grid;
+}
+
+/* ── BUILD SHEET HTML ──────────────────────────────────────── */
 function buildSheet(d) {
   currentData = d;
-  if (d.directorsText === undefined) {
-    d.directorsText = d.directors && d.directors.length
-      ? d.directors.map(function(x){return x.name+(x.company?' / '+x.company:'');}).join('\n')
-      : '';
-  }
+  var grid = buildInitialGrid(d);
   var r = [];
+
   r.push('<tr class="row-masthead"><td colspan="10">BUENO BID SPECS SHEET</td></tr>');
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
-  r.push('<tr class="row-info-val">'
-    +'<td colspan="1" data-field="date" data-raw="'+escA(d.date||'')+'">'+esc(fmtDate(d.date))+'</td>'
-    +'<td colspan="3" style="white-space:pre-wrap" data-field="directorsText" data-raw="'+escA(d.directorsText)+'">'+esc(d.directorsText)+'</td>'
-    +'<td colspan="4" data-field="client" data-raw="'+escA(d.client)+'">'+esc(d.client)+'</td>'
-    +'<td colspan="2" data-field="assignedTo" data-raw="'+escA(d.assignedTo)+'">'+esc(d.assignedTo)+'</td>'
-  +'</tr>');
+
+  var dv = d.directors.length ? d.directors.map(function(x) { return x.name + (x.company ? ' / ' + x.company : ''); }).join('\n') : '';
+  r.push('<tr class="row-info-val">' +
+    '<td colspan="1">' + esc(fmtDate(d.date)) + '</td>' +
+    '<td colspan="3" style="white-space:pre-wrap">' + esc(dv) + '</td>' +
+    '<td colspan="4" data-field="client" data-raw="' + escA(d.client) + '">' + esc(d.client) + '</td>' +
+    '<td colspan="2" data-field="assignedTo" data-raw="' + escA(d.assignedTo) + '">' + esc(d.assignedTo) + '</td>' +
+  '</tr>');
 
   r.push(secRow('Agency Info / Personnel / Contact'));
-  r.push(makeRow('Agency:',esc(d.agency),'agency',d.agency));
-  r.push(makeRow('Address:',esc(d.agencyAddress),'agencyAddress',d.agencyAddress));
-  r.push(makeRow('Phone:',esc(d.agencyPhone),'agencyPhone',d.agencyPhone));
-  r.push(makeRow('Producer:',esc(d.producerName),'producerName',d.producerName));
-  r.push(makeRow('Direct line:',esc(d.producerDirectLine),'producerDirectLine',d.producerDirectLine));
-  r.push(makeRow('Mobile:',esc(d.producerMobile),'producerMobile',d.producerMobile));
-  r.push(makeRow('Email:',d.producerEmail?'<a href="mailto:'+esc(d.producerEmail)+'">'+esc(d.producerEmail)+'</a>':'','producerEmail',d.producerEmail));
+  r.push(makeRow('Agency:',       esc(d.agency),       'agency',       d.agency));
+  r.push(makeRow('Address:',      esc(d.agencyAddress),'agencyAddress',d.agencyAddress));
+  r.push(makeRow('Phone:',        esc(d.agencyPhone),  'agencyPhone',  d.agencyPhone));
 
-  var creativesArr = Array.isArray(d.creatives)
-    ? d.creatives
-    : (d.creatives||'').split('\n').filter(Boolean).map(function(l){var p=l.split(' - ');return{name:p[0]||'',linkedin:p.slice(1).join(' - '),email:''};});
-  var creativesRaw = creativesArr.map(function(c){return c.name+(c.linkedin?' - '+c.linkedin:'');}).join('\n');
-  var ch = creativesArr.length ? creativesArr.map(function(c, i){
-    var cid = 'c'+i;
-    var hasCard = c.email || c.linkedin;
-    var btn = hasCard ? '<button class="creative-toggle" onclick="toggleCreativeCard(\''+cid+'\')">&#9432;</button>' : '';
-    var card = hasCard ? '<div class="creative-card" id="cc-'+cid+'">'
-      +(c.email ? '<div>&#9993; <a href="mailto:'+esc(c.email)+'">'+esc(c.email)+'</a></div>' : '')
-      +(c.linkedin ? '<div>&#128101; <a href="'+esc(c.linkedin)+'" target="_blank">LinkedIn</a></div>' : '')
-      +'</div>' : '';
-    return '<span class="creative-item"><strong>'+esc(c.name)+'</strong>'+btn+card+'</span>';
+  // Producer row — show Airtable link if we have a record ID
+  var producerDisplay = '';
+  if (d.producerName) {
+    if (d.producerIds && d.producerIds.length) {
+      producerDisplay = '<a class="contact-link" href="' + esc(atLink(d.producerIds[0])) + '" target="_blank">' + esc(d.producerName) + '</a>';
+    } else {
+      producerDisplay = esc(d.producerName);
+    }
+  }
+  r.push(makeRow('Producer:',     producerDisplay,     'producerName', d.producerName));
+  r.push(makeRow('Direct line:',  esc(d.producerDirectLine), 'producerDirectLine', d.producerDirectLine));
+  r.push(makeRow('Mobile:',       esc(d.producerMobile),     'producerMobile',     d.producerMobile));
+  r.push(makeRow('Email:',
+    d.producerEmail ? '<a href="mailto:' + esc(d.producerEmail) + '">' + esc(d.producerEmail) + '</a>' : '',
+    'producerEmail', d.producerEmail));
+
+  // Creative team — link each to their Airtable contact card
+  var creativesArr = Array.isArray(d.creatives) ? d.creatives : [];
+  var creativesRaw = creativesArr.map(function(c) {
+    return c.name + (c.linkedin ? ' - ' + c.linkedin : '');
+  }).join('\n');
+  var ch = creativesArr.length ? creativesArr.map(function(c) {
+    var nameHtml = c.id
+      ? '<a class="contact-link" href="' + esc(atLink(c.id)) + '" target="_blank">' + esc(c.name) + '</a>'
+      : esc(c.name);
+    var linkedinHtml = c.linkedin
+      ? ' &ndash; <a href="' + esc(c.linkedin) + '" target="_blank">' + esc(c.linkedin) + '</a>'
+      : '';
+    return '<span class="creative-item">&bull; ' + nameHtml + linkedinHtml + '</span>';
   }).join('') : '';
-  r.push(makeRow('Creative Team:',ch,'creatives',creativesRaw));
+  r.push(makeRow('Creative Team:', ch, 'creatives', creativesRaw));
 
+  /* ── SPOT INFORMATION ── */
   r.push(secRow('Spot Information'));
   r.push('<tr class="row-spot-h1"><td>Title</td><td colspan="5" style="text-align:center">Length</td><td colspan="4" style="text-align:center">Deliverables</td></tr>');
-  r.push('<tr class="row-spot-h2"><td></td>'+LENGTH_COLS.map(function(c){return '<td>'+c+'</td>';}).join('')+DELIVERABLE_COLS.map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>');
+  r.push('<tr class="row-spot-h2"><td></td>' +
+    LENGTH_COLS.map(function(c) { return '<td>' + c + '</td>'; }).join('') +
+    DELIVERABLE_COLS.map(function(c) { return '<td>' + c + '</td>'; }).join('') +
+  '</tr>');
 
   var titles = d.spotTitle ? d.spotTitle.split('\n').map(function(s){return s.trim();}).filter(Boolean) : [];
-  var totalSpotRows = Math.max(5, titles.length + 3);
-  for (var i = 0; i < totalSpotRows; i++) {
+  var totalRows = Math.max(NUM_SPOT_ROWS, titles.length + 2);
+  totalRows = NUM_SPOT_ROWS; // keep fixed at 5 for consistent layout
+
+  for (var i = 0; i < totalRows; i++) {
     var title = titles[i] || '';
-    var lc = LENGTH_COLS.map(function(col){
-      return '<td data-spot-length="'+escA(col)+'">'+(i===0&&d.spotLength&&d.spotLength.indexOf(col)>=0?'<span class="check">&#x2717;</span>':'')+'</td>';
+    var rowGrid = grid[i] || { l: [], d: [] };
+    var fa = (i === 0) ? ' data-field="spotTitle" data-raw="' + escA(d.spotTitle || '') + '"' : '';
+
+    var lc = LENGTH_COLS.map(function(col) {
+      var checked = rowGrid.l.indexOf(col) >= 0;
+      var cls = checked ? ' spot-checked' : '';
+      return '<td data-spot-row="' + i + '" data-spot-type="length" data-spot-col="' + escA(col) + '" class="' + cls + '">' +
+             (checked ? '<span class="check">&#x2717;</span>' : '') + '</td>';
     }).join('');
-    var dc = DELIVERABLE_COLS.map(function(col){
-      return '<td data-spot-deliverable="'+escA(col)+'">'+(i===0&&d.spotDeliverables&&d.spotDeliverables.indexOf(col)>=0?'<span class="check">&#x2717;</span>':'')+'</td>';
+    var dc = DELIVERABLE_COLS.map(function(col) {
+      var checked = rowGrid.d.indexOf(col) >= 0;
+      var cls = checked ? ' spot-checked' : '';
+      return '<td data-spot-row="' + i + '" data-spot-type="del" data-spot-col="' + escA(col) + '" class="' + cls + '">' +
+             (checked ? '<span class="check">&#x2717;</span>' : '') + '</td>';
     }).join('');
-    r.push('<tr class="row-spot-data"><td data-spot-title="'+i+'">'+(title?esc(title):'&nbsp;')+'</td>'+lc+dc+'</tr>');
+
+    r.push('<tr class="row-spot-data"><td' + fa + '>' + (title ? esc(title) : '&nbsp;') + '</td>' + lc + dc + '</tr>');
   }
 
-  r.push(makeRow('Notes:','<span style="white-space:pre-wrap">'+esc(d.spotNotes)+'</span>','spotNotes',d.spotNotes));
-  r.push(makeRow('Budget information:','<span style="white-space:pre-wrap">'+esc(d.budget)+'</span>','budget',d.budget));
+  r.push(makeRow('Notes:', '<span style="white-space:pre-wrap">' + esc(d.spotNotes) + '</span>', 'spotNotes', d.spotNotes));
+  r.push(makeRow('Budget information:', esc(d.budget), 'budget', d.budget));
+
   var competitionArr = Array.isArray(d.competition) ? d.competition : (d.competition||'').split('\n').filter(Boolean);
-  var competitionRaw = competitionArr.join('\n');
-  var comp = competitionArr.length ? competitionArr.map(function(c){return '<div class="competition-item">&bull; '+esc(c)+'</div>';}).join('') : '';
-  r.push(makeRow('Director competition:',comp,'competition',competitionRaw));
-  r.push(makeRow('Treatment due:',esc(fmtDateLong(d.treatmentDue)),'treatmentDue',d.treatmentDue));
-  r.push(makeRow('Bid due:',esc(fmtDateLong(d.bidDue)),'bidDue',d.bidDue));
-  r.push(makeRow('Award date:',esc(fmtDateLong(d.awardDate)),'awardDate',d.awardDate));
-  r.push(makeRow('Shoot dates:',esc(d.shootDate),'shootDate',d.shootDate));
-  r.push(makeRow('Location:',esc(d.shootLocation),'shootLocation',d.shootLocation));
-  r.push(makeRow('Delivery date:',esc(fmtDateLong(d.deliveryDate)),'deliveryDate',d.deliveryDate));
-  r.push(makeRow('Air date:',esc(fmtDateLong(d.airDate)),'airDate',d.airDate));
+  var comp = competitionArr.length ? competitionArr.map(function(c){ return '<div class="competition-item">&bull; ' + esc(c) + '</div>'; }).join('') : '';
+  r.push(makeRow('Director competition:', comp, 'competition', competitionArr.join('\n')));
+
+  r.push(makeRow('Treatment due:',  esc(fmtDateLong(d.treatmentDue)), 'treatmentDue',  d.treatmentDue));
+  r.push(makeRow('Bid due:',        esc(fmtDateLong(d.bidDue)),       'bidDue',         d.bidDue));
+  r.push(makeRow('Award date:',     esc(fmtDateLong(d.awardDate)),    'awardDate',      d.awardDate));
+  r.push(makeRow('Shoot dates:',    esc(d.shootDate),    'shootDate',     d.shootDate));
+  r.push(makeRow('Location:',       esc(d.shootLocation),'shootLocation', d.shootLocation));
+  r.push(makeRow('Delivery date:',  esc(fmtDateLong(d.deliveryDate)), 'deliveryDate',   d.deliveryDate));
+  r.push(makeRow('Air date:',       esc(fmtDateLong(d.airDate)),      'airDate',        d.airDate));
 
   r.push(secRow('Campaign Information'));
-  r.push(makeRow('Launch or previous campaign:','<span style="white-space:pre-wrap">'+esc(d.launchCampaign)+'</span>','launchCampaign',d.launchCampaign));
-  r.push(makeRow('References:','<span style="white-space:pre-wrap">'+esc(d.references)+'</span>','references',d.references));
-  r.push(makeRow('Talent:','<span style="white-space:pre-wrap">'+esc(d.talent)+'</span>','talent',d.talent));
+  r.push(makeRow('Launch or previous campaign:', '<span style="white-space:pre-wrap">' + esc(d.launchCampaign) + '</span>', 'launchCampaign', d.launchCampaign));
+  r.push(makeRow('References:',  '<span style="white-space:pre-wrap">' + esc(d.references) + '</span>', 'references', d.references));
+  r.push(makeRow('Talent:',      '<span style="white-space:pre-wrap">' + esc(d.talent)     + '</span>', 'talent',     d.talent));
 
   r.push(secRow('General Information'));
-  r.push(makeRow('Specialty reel created?:',d.specialtyReel?'<a href="'+esc(d.specialtyReel)+'" target="_blank">'+esc(d.specialtyReel)+'</a>':'','specialtyReel',d.specialtyReel));
-  r.push(makeRow('Any other useful info for treatment or calls?','<span style="white-space:pre-wrap">'+esc(d.treatmentNotes)+'</span>','treatmentNotes',d.treatmentNotes));
+  r.push(makeRow('Specialty reel created?:',
+    d.specialtyReel ? '<a href="' + esc(d.specialtyReel) + '" target="_blank">' + esc(d.specialtyReel) + '</a>' : '',
+    'specialtyReel', d.specialtyReel));
+  r.push(makeRow('Any other useful info for treatment or calls?',
+    '<span style="white-space:pre-wrap">' + esc(d.treatmentNotes) + '</span>', 'treatmentNotes', d.treatmentNotes));
+
   return r.join('\n');
 }
 
+/* ── COLOUR PICKER ─────────────────────────────────────────── */
 function updateColour(val) {
   document.documentElement.style.setProperty('--brand', val);
   try { localStorage.setItem('bueno-brand', val); } catch(e) {}
@@ -256,221 +315,183 @@ function updateColour(val) {
 function dismissColour(e) {
   e.preventDefault(); e.stopPropagation();
   document.getElementById('colour-wrap').style.display = 'none';
-  try { localStorage.setItem('bueno-colour-hidden', '1'); } catch(e2) {}
+  try { localStorage.setItem('bueno-colour-hidden','1'); } catch(e) {}
 }
 
-async function fetchPeopleOptions() {
-  if (peopleOptions) return peopleOptions;
-  try {
-    var r = await fetch('/api/people');
-    if (r.ok) { peopleOptions = await r.json(); return peopleOptions; }
-  } catch(e) {}
-  return [];
-}
-
-async function fetchDirectorsOptions() {
-  if (directorsOptions) return directorsOptions;
-  try {
-    var r = await fetch('/api/directors');
-    if (r.ok) { directorsOptions = await r.json(); return directorsOptions; }
-  } catch(e) {}
-  return [];
-}
-
-async function enterEditMode() {
+/* ── EDIT MODE ─────────────────────────────────────────────── */
+function enterEditMode() {
   document.getElementById('sheet-wrap').classList.add('editing');
-  document.getElementById('btn-edit').style.display = 'none';
-  document.getElementById('btn-save').style.display = '';
+  document.getElementById('btn-edit').style.display   = 'none';
+  document.getElementById('btn-save').style.display   = '';
   document.getElementById('btn-cancel').style.display = '';
-  document.getElementById('edit-status').textContent = 'Editing...';
+  document.getElementById('edit-status').textContent  = 'Editing — unsaved changes';
 
-  var people = await fetchPeopleOptions();
+  // Initialise per-row spot grid from currentData
+  spotGridEdit = {};
+  var grid = buildInitialGrid(currentData);
+  for (var i = 0; i < NUM_SPOT_ROWS; i++) {
+    spotGridEdit[i] = { l: (grid[i] || {l:[]}).l.slice(), d: (grid[i] || {d:[]}).d.slice() };
+  }
 
+  // Wire up spot cells as per-row toggles
+  document.querySelectorAll('td[data-spot-type]').forEach(function(td) {
+    td.onclick = function() {
+      var ri   = parseInt(this.getAttribute('data-spot-row'));
+      var type = this.getAttribute('data-spot-type'); // 'length' | 'del'
+      var col  = this.getAttribute('data-spot-col');
+      var arr  = type === 'length' ? spotGridEdit[ri].l : spotGridEdit[ri].d;
+      var idx  = arr.indexOf(col);
+      if (idx >= 0) { arr.splice(idx, 1); } else { arr.push(col); }
+      var checked = arr.indexOf(col) >= 0;
+      this.innerHTML = checked ? '<span class="check">&#x2717;</span>' : '';
+      this.classList.toggle('spot-checked', checked);
+    };
+  });
+
+  // Replace td[data-field] cells with inputs
   document.querySelectorAll('td[data-field]').forEach(function(td) {
     var field = td.getAttribute('data-field');
-    var raw = td.getAttribute('data-raw') || '';
-    var type = FIELD_TYPES[field] || 'text';
+    var raw   = td.getAttribute('data-raw') || '';
+    var type  = FIELD_TYPES[field] || 'text';
     var el;
-    if (type === 'textarea') {
+
+    if (type === 'select' && field === 'assignedTo') {
+      el = document.createElement('select');
+      el.className = 'edit-input';
+      el.innerHTML = '<option value="">—</option>';
+      // Add current value immediately so something shows
+      if (raw) { el.innerHTML += '<option value="' + escAttr(raw) + '" selected>' + escHtml(raw) + '</option>'; }
+      // Async populate from /api/people
+      fetch('/api/people').then(function(r){return r.json();}).then(function(people) {
+        el.innerHTML = '<option value="">—</option>';
+        people.forEach(function(p) {
+          var opt = document.createElement('option');
+          opt.value = p.name; opt.textContent = p.name;
+          if (p.name === raw) opt.selected = true;
+          el.appendChild(opt);
+        });
+      }).catch(function(){});
+    } else if (type === 'textarea') {
       el = document.createElement('textarea');
-      el.rows = Math.max(2, raw.split('\n').length + 1);
+      el.rows = Math.max(2, (raw.match(/\n/g)||[]).length + 2);
     } else if (type === 'date') {
       el = document.createElement('input'); el.type = 'date';
-    } else if (type === 'select-people') {
-      el = document.createElement('select');
-      var blank = document.createElement('option');
-      blank.value = ''; blank.textContent = '-- select --';
-      el.appendChild(blank);
-      people.forEach(function(p) {
-        var opt = document.createElement('option');
-        opt.value = p.name; opt.textContent = p.name;
-        if (p.name === raw) opt.selected = true;
-        el.appendChild(opt);
-      });
-      if (!people.find(function(p){return p.name===raw;}) && raw) {
-        var opt2 = document.createElement('option');
-        opt2.value = raw; opt2.textContent = raw; opt2.selected = true;
-        el.insertBefore(opt2, blank.nextSibling);
-      }
-    } else if (type === 'datalist-directors') {
-      el = document.createElement('input'); el.type = 'text';
-      el.setAttribute('list', 'dir-datalist');
-      var dl = document.getElementById('dir-datalist');
-      if (!dl) {
-        dl = document.createElement('datalist');
-        dl.id = 'dir-datalist';
-        document.body.appendChild(dl);
-      }
-      if (!dl.children.length) {
-        fetchDirectorsOptions().then(function(dirs) {
-          dirs.forEach(function(d) {
-            var opt = document.createElement('option'); opt.value = d.name; dl.appendChild(opt);
-          });
-        });
-      }
     } else {
       el = document.createElement('input'); el.type = 'text';
     }
-    el.className = 'edit-input';
-    if (type !== 'select-people') el.value = raw;
-    el.style.width = '100%';
+    el.className = 'edit-input'; el.value = raw; el.style.width = '100%';
     td.innerHTML = ''; td.style.whiteSpace = 'normal'; td.appendChild(el);
   });
 
-  document.querySelectorAll('[data-spot-title]').forEach(function(td) {
-    var content = td.textContent.trim();
-    var inp = document.createElement('input');
-    inp.type = 'text';
-    inp.className = 'edit-input';
-    inp.placeholder = 'Spot title…';
-    inp.value = (content === ' ' || content === '') ? '' : content;
-    td.innerHTML = '';
-    td.appendChild(inp);
-  });
-
-  editSpotLength = (currentData && currentData.spotLength) ? currentData.spotLength.slice() : [];
-  editSpotDeliverables = (currentData && currentData.spotDeliverables) ? currentData.spotDeliverables.slice() : [];
-
-  LENGTH_COLS.forEach(function(col) {
-    var checked = editSpotLength.indexOf(col) >= 0;
-    document.querySelectorAll('[data-spot-length="'+col+'"]').forEach(function(cell) {
-      cell.innerHTML = checked ? '<span class="check">&#x2717;</span>' : '';
-    });
-  });
-  DELIVERABLE_COLS.forEach(function(col) {
-    var checked = editSpotDeliverables.indexOf(col) >= 0;
-    document.querySelectorAll('[data-spot-deliverable="'+col+'"]').forEach(function(cell) {
-      cell.innerHTML = checked ? '<span class="check">&#x2717;</span>' : '';
-    });
-  });
-
-  document.querySelectorAll('[data-spot-length]').forEach(function(td) {
-    td.onclick = function() {
-      var val = this.getAttribute('data-spot-length');
-      var idx = editSpotLength.indexOf(val);
-      if (idx >= 0) editSpotLength.splice(idx, 1); else editSpotLength.push(val);
-      var checked = editSpotLength.indexOf(val) >= 0;
-      document.querySelectorAll('[data-spot-length="'+val+'"]').forEach(function(c) {
-        c.innerHTML = checked ? '<span class="check">&#x2717;</span>' : '';
-      });
-    };
-  });
-
-  document.querySelectorAll('[data-spot-deliverable]').forEach(function(td) {
-    td.onclick = function() {
-      var val = this.getAttribute('data-spot-deliverable');
-      var idx = editSpotDeliverables.indexOf(val);
-      if (idx >= 0) editSpotDeliverables.splice(idx, 1); else editSpotDeliverables.push(val);
-      var checked = editSpotDeliverables.indexOf(val) >= 0;
-      document.querySelectorAll('[data-spot-deliverable="'+val+'"]').forEach(function(c) {
-        c.innerHTML = checked ? '<span class="check">&#x2717;</span>' : '';
-      });
-    };
-  });
-
-  document.getElementById('edit-status').textContent = 'Editing — unsaved';
+  // Add director datalist to spotTitle textarea if it exists
+  var stCell = document.querySelector('td[data-field="spotTitle"]');
+  if (stCell) {
+    var inp = stCell.querySelector('.edit-input');
+    if (inp) inp.placeholder = 'One title per line…';
+  }
 }
+
+function escAttr(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function exitEditMode(restore) {
   document.getElementById('sheet-wrap').classList.remove('editing');
-  document.getElementById('btn-edit').style.display = '';
-  document.getElementById('btn-save').style.display = 'none';
+  document.getElementById('btn-edit').style.display   = '';
+  document.getElementById('btn-save').style.display   = 'none';
   document.getElementById('btn-cancel').style.display = 'none';
-  document.getElementById('edit-status').textContent = '';
-  document.querySelectorAll('[data-spot-length],[data-spot-deliverable]').forEach(function(td) { td.onclick = null; });
+  document.getElementById('edit-status').textContent  = '';
+  // Remove spot click handlers
+  document.querySelectorAll('td[data-spot-type]').forEach(function(td) { td.onclick = null; });
   if (restore && currentData) document.getElementById('sheet-body').innerHTML = buildSheet(currentData);
 }
 
 async function saveChanges() {
   var status = document.getElementById('edit-status');
-  status.textContent = 'Saving...';
-  document.getElementById('btn-save').disabled = true;
+  status.textContent = 'Saving…';
+  document.getElementById('btn-save').disabled   = true;
   document.getElementById('btn-cancel').disabled = true;
-  var updates = {};
 
+  // Collect regular field updates
+  var updates = {};
   document.querySelectorAll('td[data-field]').forEach(function(td) {
     var inp = td.querySelector('.edit-input');
     if (inp) updates[td.getAttribute('data-field')] = inp.value;
   });
 
-  var spotTitles = [];
-  document.querySelectorAll('[data-spot-title]').forEach(function(td) {
-    var inp = td.querySelector('input.edit-input');
-    if (inp && inp.value.trim()) spotTitles.push(inp.value.trim());
-  });
-  updates['spotTitle'] = spotTitles.join('\n');
-
-  updates['spotLength'] = JSON.stringify(editSpotLength);
-  updates['spotDeliverables'] = JSON.stringify(editSpotDeliverables);
+  // Build spotGrid array from per-row edits
+  var gridArr = [];
+  for (var i = 0; i < NUM_SPOT_ROWS; i++) {
+    var row = spotGridEdit[i] || { l: [], d: [] };
+    gridArr.push({ l: row.l, d: row.d });
+  }
+  updates.spotGrid = gridArr;
 
   try {
     var id = new URLSearchParams(window.location.search).get('id');
-    var res = await fetch('/api/lead?id='+encodeURIComponent(id), {
-      method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(updates)
+    var res = await fetch('/api/lead?id=' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
     });
     var body = await res.json();
     if (!res.ok) throw new Error(body.error || 'Save failed');
-    Object.keys(updates).forEach(function(k){
-      if (k === 'spotLength') { if (currentData) currentData[k] = editSpotLength.slice(); }
-      else if (k === 'spotDeliverables') { if (currentData) currentData[k] = editSpotDeliverables.slice(); }
-      else if (currentData) currentData[k] = updates[k];
+
+    // Update currentData to reflect saved values
+    Object.keys(updates).forEach(function(k) {
+      if (k !== 'spotGrid') currentData[k] = updates[k];
     });
+    currentData.spotGrid = gridArr;
+
     exitEditMode(true);
     document.getElementById('edit-status').textContent = '✓ Saved';
     setTimeout(function(){ document.getElementById('edit-status').textContent = ''; }, 3000);
   } catch(err) {
     status.textContent = '✗ ' + err.message;
-    document.getElementById('btn-save').disabled = false;
+    document.getElementById('btn-save').disabled   = false;
     document.getElementById('btn-cancel').disabled = false;
   }
 }
 
+/* ── LOAD DIRECTOR DATALIST ────────────────────────────────── */
+function loadDirectorDatalist() {
+  fetch('/api/directors').then(function(r){return r.json();}).then(function(dirs) {
+    var dl = document.getElementById('dl-directors');
+    dl.innerHTML = '';
+    dirs.forEach(function(d) {
+      var opt = document.createElement('option'); opt.value = d.name; dl.appendChild(opt);
+    });
+  }).catch(function(){});
+}
+
+/* ── INIT ──────────────────────────────────────────────────── */
 async function init() {
   try {
     var saved = localStorage.getItem('bueno-brand');
     if (saved) { document.documentElement.style.setProperty('--brand', saved); document.getElementById('brand-colour').value = saved; }
     if (localStorage.getItem('bueno-colour-hidden') === '1') { document.getElementById('colour-wrap').style.display = 'none'; }
   } catch(e) {}
+
   var id = new URLSearchParams(window.location.search).get('id');
   if (!id || !/^rec[A-Za-z0-9]{14}$/.test(id)) {
     document.getElementById('loading').style.display = 'none';
-    document.getElementById('error').style.display = 'flex';
+    document.getElementById('error').style.display   = 'flex';
     document.getElementById('error-detail').textContent = 'No valid record ID in URL. Add ?id=RECORD_ID to the URL.';
     return;
   }
+
+  loadDirectorDatalist();
+
   try {
-    var res = await fetch('/api/lead?id='+encodeURIComponent(id));
-    if (!res.ok) { var b = await res.json().catch(function(){return{};}); throw new Error(b.error||'HTTP '+res.status); }
+    var res = await fetch('/api/lead?id=' + encodeURIComponent(id));
+    if (!res.ok) { var b = await res.json().catch(function(){return{};}); throw new Error(b.error || 'HTTP ' + res.status); }
     var data = await res.json();
     document.getElementById('sheet-body').innerHTML = buildSheet(data);
-    document.title = 'Bueno Bid Spec'+(data.client?' — '+data.client:'');
-    document.getElementById('loading').style.display = 'none';
+    document.title = 'Bueno Bid Spec' + (data.client ? ' — ' + data.client : '');
+    document.getElementById('loading').style.display   = 'none';
     document.getElementById('sheet-wrap').style.display = 'block';
-    fetchPeopleOptions();
-    fetchDirectorsOptions();
   } catch(err) {
     document.getElementById('loading').style.display = 'none';
-    document.getElementById('error').style.display = 'flex';
+    document.getElementById('error').style.display   = 'flex';
     document.getElementById('error-detail').textContent = err.message;
   }
 }
