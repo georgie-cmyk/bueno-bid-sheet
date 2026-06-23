@@ -4,9 +4,36 @@ const DIRECTOR_LEADS_TABLE = 'tbl08kVBBTQRtDxVD';
 const PEOPLE_TABLE = 'tblX85mK7o9AMp8Uy';
 const COMPANIES_TABLE = 'tbla3CGnVGsBQXPhi';
 
+const WRITABLE = {
+  spotTitle: 'Spot Title',
+  spotNotes: 'Spot Notes',
+  budget: 'Budget',
+  treatmentDue: 'Treatment Due',
+  bidDue: 'Bid Due',
+  awardDate: 'Award Date',
+  shootDate: 'Shoot Date',
+  shootLocation: 'Shoot Location',
+  deliveryDate: 'Delivery Date',
+  airDate: 'Air Date',
+  launchCampaign: 'Launch / Previous Campaign',
+  references: 'References',
+  talent: 'Talent',
+  treatmentNotes: 'Treatment Notes',
+};
+
 async function atGet(path, token) {
   const res = await fetch('https://api.airtable.com/v0/' + BASE_ID + '/' + path, {
     headers: { Authorization: 'Bearer ' + token }
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error('Airtable ' + res.status + ': ' + t); }
+  return res.json();
+}
+
+async function atPatch(recordId, fields, token) {
+  const res = await fetch('https://api.airtable.com/v0/' + BASE_ID + '/' + LEADS_TABLE + '/' + recordId, {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields }),
   });
   if (!res.ok) { const t = await res.text(); throw new Error('Airtable ' + res.status + ': ' + t); }
   return res.json();
@@ -28,13 +55,32 @@ function selectNames(arr) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
-  const { id } = req.query;
-  if (!id || !/^rec[A-Za-z0-9]{14}$/.test(id)) return res.status(400).json({ error: 'Invalid record ID' });
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const qid = req['query'] && req['query']['id'];
+  if (!qid || !/^rec[A-Za-z0-9]{14}$/.test(qid)) return res.status(400).json({ error: 'Invalid record ID' });
   const token = process.env.AIRTABLE_TOKEN;
   if (!token) return res.status(500).json({ error: 'AIRTABLE_TOKEN not set' });
+
+  if (req.method === 'PATCH') {
+    try {
+      const updates = req.body || {};
+      const fields = {};
+      for (const [key, val] of Object.entries(updates)) {
+        if (WRITABLE[key] !== undefined) fields[WRITABLE[key]] = val || null;
+      }
+      if (!Object.keys(fields).length) return res.status(400).json({ error: 'No writable fields provided' });
+      await atPatch(qid, fields, token);
+      return res.status(200).json({ ok: true });
+    } catch (err) { return res.status(500).json({ error: err.message }); }
+  }
+
+  res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
   try {
-    const lead = await atGet(LEADS_TABLE + '/' + id, token);
+    const lead = await atGet(LEADS_TABLE + '/' + qid, token);
     const f = lead.fields;
     const [agencyRecs, producerRecs, creativeRecs, directorLeadRecs, competitionRecs] = await Promise.all([
       fetchByIds(COMPANIES_TABLE, f['Agency'] || [], token),
