@@ -12,14 +12,16 @@ module.exports = async (req, res) => {
 
   res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
   try {
-    const filter = encodeURIComponent('{Function}="DIRECTOR"');
     let all = [], offset = '';
     do {
-      const url = 'https://api.airtable.com/v0/' + BASE_ID + '/' + PEOPLE_TABLE
-        + '?fields=' + encodeURIComponent('Name')
-        + '&filterByFormula=' + filter
-        + (offset ? '&offset=' + offset : '')
-        + '&sort[0][field]=Name&sort[0][direction]=asc';
+      const params = new URLSearchParams({
+        filterByFormula: '{Function}="DIRECTOR"',
+        'sort[0][field]': 'Name',
+        'sort[0][direction]': 'asc'
+      });
+      params.append('fields[]', 'Name');
+      if (offset) params.append('offset', offset);
+      const url = 'https://api.airtable.com/v0/' + BASE_ID + '/' + PEOPLE_TABLE + '?' + params.toString();
       const r = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
       if (!r.ok) { const t = await r.text(); throw new Error('Airtable ' + r.status + ': ' + t); }
       const data = await r.json();
