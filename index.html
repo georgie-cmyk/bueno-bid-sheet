@@ -5,23 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bueno Bid Spec</title>
 <style>
-  :root {
-    --brand: #1F3864;
-    --brand-mid: color-mix(in srgb, var(--brand) 70%, white);
-    --brand-light: color-mix(in srgb, var(--brand) 20%, white);
-    --brand-xlight: color-mix(in srgb, var(--brand) 12%, white);
-  }
+  :root { --brand: #1F3864; --brand-mid: color-mix(in srgb, var(--brand) 70%, white); --brand-light: color-mix(in srgb, var(--brand) 20%, white); --brand-xlight: color-mix(in srgb, var(--brand) 12%, white); }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; background: #f0f0f0; color: #000; }
-  #loading, #error {
-    display: flex; align-items: center; justify-content: center;
-    height: 100vh; font-size: 14px; color: #555; flex-direction: column; gap: 12px;
-  }
+  #loading, #error { display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 14px; color: #555; flex-direction: column; gap: 12px; }
   #error { color: #c00; }
-  #sheet-wrap {
-    display: none; max-width: 1100px; margin: 24px auto 80px;
-    background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-  }
+  #sheet-wrap { display: none; max-width: 1100px; margin: 24px auto 80px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
   table.sheet { width: 100%; border-collapse: collapse; table-layout: fixed; }
   table.sheet col.c-title  { width: 22%; }
   table.sheet col.c-narrow { width: 7.5%; }
@@ -41,12 +30,19 @@
   .check { font-size: 14px; font-weight: bold; color: var(--brand); }
   .competition-item { margin-bottom: 2px; }
   a { color: #1155CC; text-decoration: underline; word-break: break-all; }
-  .creative-item { display: block; margin-bottom: 2px; }
+  .creative-item { display: block; margin-bottom: 4px; }
+  .creative-toggle { background: none; border: 1px solid var(--brand-mid); color: var(--brand); font-size: 10px; border-radius: 3px; padding: 1px 5px; cursor: pointer; margin-left: 6px; vertical-align: middle; }
+  .creative-toggle:hover { background: var(--brand-light); }
+  .creative-card { display: none; background: var(--brand-xlight); border: 1px solid var(--brand-mid); border-radius: 4px; padding: 6px 8px; margin: 4px 0 4px 12px; font-size: 11px; line-height: 1.6; }
+  .creative-card.open { display: block; }
+  .creative-card a { font-size: 11px; }
 
   /* EDIT MODE */
   .edit-input { width: 100%; font-family: Arial, Helvetica, sans-serif; font-size: 12px; padding: 2px 4px; border: 1px solid #2F5496; border-radius: 2px; background: #fff; resize: vertical; min-height: 24px; }
   .edit-input:focus { outline: 2px solid #2F5496; }
   .editing td[data-field] { background: #f0f4ff !important; }
+  .edit-input[type=date] { min-height: 26px; cursor: pointer; }
+  select.edit-input { min-height: 26px; cursor: pointer; }
 
   /* BOTTOM BAR */
   #edit-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 20px; font-size: 13px; z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,0.2); }
@@ -54,14 +50,21 @@
   #btn-edit { background: rgba(255,255,255,0.9); color: var(--brand); }
   #btn-save { background: #4CAF50; color: #fff; }
   #btn-cancel { background: rgba(255,255,255,0.3); color: #fff; }
+  #btn-print { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+  #btn-print:hover { background: rgba(255,255,255,0.25); }
   #colour-wrap { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
   #colour-wrap input[type=color] { width: 22px; height: 22px; padding: 0; border: none; cursor: pointer; border-radius: 3px; }
+  #btn-dismiss-colour { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; font-weight: bold; }
+  #btn-dismiss-colour:hover { color: #fff; }
   #edit-status { font-size: 12px; min-width: 140px; text-align: center; }
 
   @media print {
     body { background: #fff; }
-    #sheet-wrap { max-width: 100%; margin: 0; box-shadow: none; }
+    #sheet-wrap { max-width: 100%; margin: 0; box-shadow: none; display: block !important; }
+    #loading, #error { display: none !important; }
     #edit-bar { display: none !important; }
+    .creative-toggle { display: none !important; }
+    .creative-card { display: block !important; }
     .row-masthead td, .row-section td, .row-info-hdr td, .row-info-val td,
     td.label, .row-spot-h1 td, .row-spot-h2 td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
@@ -97,9 +100,11 @@
   <button id="btn-edit" onclick="enterEditMode()">&#9998; Edit</button>
   <button id="btn-save" style="display:none" onclick="saveChanges()">&#128190; Save changes</button>
   <button id="btn-cancel" style="display:none" onclick="exitEditMode(true)">&#10005; Cancel</button>
+  <button id="btn-print" onclick="window.print()">&#128438; PDF</button>
   <label id="colour-wrap" title="Change brand colour">
     &#127912; Colour
     <input type="color" id="brand-colour" value="#1F3864" oninput="updateColour(this.value)">
+    <button id="btn-dismiss-colour" onclick="dismissColour(event)" title="Hide colour picker">&#10005;</button>
   </label>
   <span id="edit-status"></span>
 </div>
@@ -110,19 +115,22 @@
 var LENGTH_COLS = [':15',':30',':60',':90','Other'];
 var DELIVERABLE_COLS = ['Broadcast','VR','Online','Other'];
 var FIELD_TYPES = {
+  date:'date',
+  directorsText:'textarea',
   spotTitle:'textarea', spotNotes:'textarea', budget:'text',
   treatmentDue:'date', bidDue:'date', awardDate:'date',
   shootDate:'text', shootLocation:'text',
   deliveryDate:'date', airDate:'date',
   launchCampaign:'textarea', references:'textarea',
   talent:'textarea', treatmentNotes:'textarea',
-  client:'text', assignedTo:'text',
+  client:'text', assignedTo:'select-people',
   agency:'text', agencyAddress:'textarea', agencyPhone:'text',
   producerName:'text', producerDirectLine:'text', producerMobile:'text', producerEmail:'text',
   creatives:'textarea', competition:'textarea',
   specialtyReel:'text'
 };
 var currentData = null;
+var peopleOptions = null; // cached list for dropdowns
 
 function fmtDate(iso) {
   if (!iso) return '';
@@ -137,6 +145,11 @@ function fmtDateLong(iso) {
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escA(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/\n/g,'&#10;'); }
 
+function toggleCreativeCard(id) {
+  var card = document.getElementById('cc-'+id);
+  if (card) card.classList.toggle('open');
+}
+
 function makeRow(lbl, val, fkey, raw, lspan, vspan) {
   lspan = lspan||1; vspan = vspan||9;
   var da = fkey ? ' data-field="'+fkey+'" data-raw="'+escA(raw||'')+'"' : '';
@@ -146,11 +159,21 @@ function secRow(t) { return '<tr class="row-section"><td colspan="10">'+esc(t)+'
 
 function buildSheet(d) {
   currentData = d;
+  // Derive directorsText from directors array if not already set as override
+  if (d.directorsText === undefined) {
+    d.directorsText = d.directors && d.directors.length
+      ? d.directors.map(function(x){return x.name+(x.company?' / '+x.company:'');}).join('\n')
+      : '';
+  }
   var r = [];
   r.push('<tr class="row-masthead"><td colspan="10">BUENO BID SPECS SHEET</td></tr>');
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
-  var dv = d.directors.length ? d.directors.map(function(x){return x.name+(x.company?' / '+x.company:'');}).join('\n') : '';
-  r.push('<tr class="row-info-val"><td colspan="1">'+esc(fmtDate(d.date))+'</td><td colspan="3" style="white-space:pre-wrap">'+esc(dv)+'</td><td colspan="4" data-field="client" data-raw="'+escA(d.client)+'">'+esc(d.client)+'</td><td colspan="2" data-field="assignedTo" data-raw="'+escA(d.assignedTo)+'">'+esc(d.assignedTo)+'</td></tr>');
+  r.push('<tr class="row-info-val">'
+    +'<td colspan="1" data-field="date" data-raw="'+escA(d.date||'')+'">'+esc(fmtDate(d.date))+'</td>'
+    +'<td colspan="3" style="white-space:pre-wrap" data-field="directorsText" data-raw="'+escA(d.directorsText)+'">'+esc(d.directorsText)+'</td>'
+    +'<td colspan="4" data-field="client" data-raw="'+escA(d.client)+'">'+esc(d.client)+'</td>'
+    +'<td colspan="2" data-field="assignedTo" data-raw="'+escA(d.assignedTo)+'">'+esc(d.assignedTo)+'</td>'
+  +'</tr>');
 
   r.push(secRow('Agency Info / Personnel / Contact'));
   r.push(makeRow('Agency:',esc(d.agency),'agency',d.agency));
@@ -160,10 +183,20 @@ function buildSheet(d) {
   r.push(makeRow('Direct line:',esc(d.producerDirectLine),'producerDirectLine',d.producerDirectLine));
   r.push(makeRow('Mobile:',esc(d.producerMobile),'producerMobile',d.producerMobile));
   r.push(makeRow('Email:',d.producerEmail?'<a href="mailto:'+esc(d.producerEmail)+'">'+esc(d.producerEmail)+'</a>':'','producerEmail',d.producerEmail));
-  var creativesArr = Array.isArray(d.creatives) ? d.creatives : (d.creatives||'').split('\n').filter(Boolean).map(function(l){var p=l.split(' - ');return{name:p[0]||'',linkedin:p.slice(1).join(' - ')};});
+
+  var creativesArr = Array.isArray(d.creatives)
+    ? d.creatives
+    : (d.creatives||'').split('\n').filter(Boolean).map(function(l){var p=l.split(' - ');return{name:p[0]||'',linkedin:p.slice(1).join(' - '),email:''};});
   var creativesRaw = creativesArr.map(function(c){return c.name+(c.linkedin?' - '+c.linkedin:'');}).join('\n');
-  var ch = creativesArr.length ? creativesArr.map(function(c){
-    return '<span class="creative-item">&bull; '+esc(c.name)+(c.linkedin?' &ndash; <a href="'+esc(c.linkedin)+'" target="_blank">'+esc(c.linkedin)+'</a>':'')+'</span>';
+  var ch = creativesArr.length ? creativesArr.map(function(c, i){
+    var cid = 'c'+i;
+    var hasCard = c.email || c.linkedin;
+    var btn = hasCard ? '<button class="creative-toggle" onclick="toggleCreativeCard(\''+cid+'\')">&#9432;</button>' : '';
+    var card = hasCard ? '<div class="creative-card" id="cc-'+cid+'">'
+      +(c.email ? '<div>&#9993; <a href="mailto:'+esc(c.email)+'">'+esc(c.email)+'</a></div>' : '')
+      +(c.linkedin ? '<div>&#128101; <a href="'+esc(c.linkedin)+'" target="_blank">LinkedIn</a></div>' : '')
+      +'</div>' : '';
+    return '<span class="creative-item"><strong>'+esc(c.name)+'</strong>'+btn+card+'</span>';
   }).join('') : '';
   r.push(makeRow('Creative Team:',ch,'creatives',creativesRaw));
 
@@ -178,7 +211,6 @@ function buildSheet(d) {
     var fa = i===0?' data-field="spotTitle" data-raw="'+escA(d.spotTitle)+'"':'';
     r.push('<tr class="row-spot-data"><td'+fa+'>'+esc(title)+'</td>'+lc+dc+'</tr>');
   });
-  // Blank spot rows â always show at least 5 total rows
   var emptyCells = LENGTH_COLS.map(function(){return '<td></td>';}).join('')+DELIVERABLE_COLS.map(function(){return '<td></td>';}).join('');
   var totalTarget = Math.max(5, titles.length + 3);
   for (var i = titles.length; i < totalTarget; i++) {
@@ -216,12 +248,30 @@ function updateColour(val) {
   try { localStorage.setItem('bueno-brand', val); } catch(e) {}
 }
 
-function enterEditMode() {
+function dismissColour(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('colour-wrap').style.display = 'none';
+  try { localStorage.setItem('bueno-colour-hidden', '1'); } catch(e2) {}
+}
+
+async function fetchPeopleOptions() {
+  if (peopleOptions) return peopleOptions;
+  try {
+    var r = await fetch('/api/people');
+    if (r.ok) { peopleOptions = await r.json(); return peopleOptions; }
+  } catch(e) {}
+  return [];
+}
+
+async function enterEditMode() {
   document.getElementById('sheet-wrap').classList.add('editing');
   document.getElementById('btn-edit').style.display = 'none';
   document.getElementById('btn-save').style.display = '';
   document.getElementById('btn-cancel').style.display = '';
-  document.getElementById('edit-status').textContent = 'Editing â unsaved changes';
+  document.getElementById('edit-status').textContent = 'Editing...';
+
+  var people = await fetchPeopleOptions();
+
   document.querySelectorAll('td[data-field]').forEach(function(td) {
     var field = td.getAttribute('data-field');
     var raw = td.getAttribute('data-raw') || '';
@@ -232,12 +282,32 @@ function enterEditMode() {
       el.rows = Math.max(2, raw.split('\n').length + 1);
     } else if (type === 'date') {
       el = document.createElement('input'); el.type = 'date';
+    } else if (type === 'select-people') {
+      el = document.createElement('select');
+      var blank = document.createElement('option');
+      blank.value = ''; blank.textContent = '-- select --';
+      el.appendChild(blank);
+      people.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p.name; opt.textContent = p.name;
+        if (p.name === raw) opt.selected = true;
+        el.appendChild(opt);
+      });
+      // Also allow typing by falling back to a datalist if no match
+      if (!people.find(function(p){return p.name===raw;}) && raw) {
+        var opt2 = document.createElement('option');
+        opt2.value = raw; opt2.textContent = raw; opt2.selected = true;
+        el.insertBefore(opt2, blank.nextSibling);
+      }
     } else {
       el = document.createElement('input'); el.type = 'text';
     }
-    el.className = 'edit-input'; el.value = raw; el.style.width = '100%';
+    el.className = 'edit-input';
+    if (type !== 'select-people') el.value = raw;
+    el.style.width = '100%';
     td.innerHTML = ''; td.style.whiteSpace = 'normal'; td.appendChild(el);
   });
+  document.getElementById('edit-status').textContent = 'Editing â unsaved';
 }
 
 function exitEditMode(restore) {
@@ -251,7 +321,7 @@ function exitEditMode(restore) {
 
 async function saveChanges() {
   var status = document.getElementById('edit-status');
-  status.textContent = 'Savingâ¦';
+  status.textContent = 'Saving...';
   document.getElementById('btn-save').disabled = true;
   document.getElementById('btn-cancel').disabled = true;
   var updates = {};
@@ -281,6 +351,7 @@ async function init() {
   try {
     var saved = localStorage.getItem('bueno-brand');
     if (saved) { document.documentElement.style.setProperty('--brand', saved); document.getElementById('brand-colour').value = saved; }
+    if (localStorage.getItem('bueno-colour-hidden') === '1') { document.getElementById('colour-wrap').style.display = 'none'; }
   } catch(e) {}
   var id = new URLSearchParams(window.location.search).get('id');
   if (!id || !/^rec[A-Za-z0-9]{14}$/.test(id)) {
@@ -297,6 +368,8 @@ async function init() {
     document.title = 'Bueno Bid Spec'+(data.client?' â '+data.client:'');
     document.getElementById('loading').style.display = 'none';
     document.getElementById('sheet-wrap').style.display = 'block';
+    // Pre-fetch people in the background so the dropdown is instant
+    fetchPeopleOptions();
   } catch(err) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error').style.display = 'flex';
@@ -305,3 +378,6 @@ async function init() {
 }
 
 init();
+</script>
+</body>
+</html>
