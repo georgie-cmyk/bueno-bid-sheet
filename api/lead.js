@@ -72,20 +72,33 @@ module.exports = async (req, res) => {
     try {
       const updates = req.body || {};
       const fields = {};
+
       for (const [key, val] of Object.entries(updates)) {
         if (WRITABLE[key] !== undefined) fields[WRITABLE[key]] = val || null;
       }
-      if (updates.assignedTo && updates.assignedTo.trim()) {
-        const name = updates.assignedTo.trim();
-        const formula = "Name='" + name.replace(/'/g, "\\'"  ) + "'";
-        try {
-          const people = await atGet(PEOPLE_TABLE + '?filterByFormula=' + encodeURIComponent(formula) + '&maxRecords=1', token);
-          if (people.records && people.records.length > 0) {
-            fields['Assigned To'] = [people.records[0].id];
-            delete fields[WRITABLE['assignedTo']];
-          }
-        } catch(e) { /* skip */ }
+
+      // assignedTo: Assigned To is a multipleSelects field — save the name directly
+      if (updates.assignedTo !== undefined) {
+        const name = (updates.assignedTo || '').trim();
+        fields['Assigned To'] = name ? [name] : [];
       }
+
+      // spotLength: multipleSelects — save as array of strings
+      if (updates.spotLength !== undefined) {
+        try {
+          const sl = typeof updates.spotLength === 'string' ? JSON.parse(updates.spotLength) : updates.spotLength;
+          if (Array.isArray(sl)) fields['Spot Length'] = sl;
+        } catch(e) {}
+      }
+
+      // spotDeliverables: multipleSelects — save as array of strings
+      if (updates.spotDeliverables !== undefined) {
+        try {
+          const sd = typeof updates.spotDeliverables === 'string' ? JSON.parse(updates.spotDeliverables) : updates.spotDeliverables;
+          if (Array.isArray(sd)) fields['Spot Deliverables'] = sd;
+        } catch(e) {}
+      }
+
       if (!Object.keys(fields).length) return res.status(200).json({ ok: true });
       await atPatch(qid, fields, token);
       return res.status(200).json({ ok: true });
