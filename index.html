@@ -140,6 +140,7 @@
 
 <!-- Datalists for autocomplete -->
 <datalist id="dl-directors"></datalist>
+<datalist id="dl-agencies"></datalist>
 
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
@@ -158,11 +159,15 @@ var FIELD_TYPES = {
   launchCampaign:'textarea', references:'textarea',
   talent:'textarea', treatmentNotes:'textarea',
   client:'text', assignedTo:'select',
-  agency:'text', agencyAddress:'textarea', agencyPhone:'text',
+  agency:'agency-select',
   producerName:'text', producerDirectLine:'text', producerMobile:'text', producerEmail:'text',
   creatives:'textarea', competition:'textarea',
-  specialtyReel:'text'
+  specialtyReel:'text',
+  bidDate:'date', directorOverride:'director-select'
 };
+
+var pendingAgencyId = null;
+var agenciesData    = [];
 
 var currentData  = null;
 var spotGridEdit = {};  // rowIndex -> { l: [...], d: [...] }
@@ -256,17 +261,22 @@ function buildSheet(d) {
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
 
   var dv = d.directors.length ? d.directors.map(function(x) { return x.name + (x.company ? ' / ' + x.company : ''); }).join('\n') : '';
+  var dirDisplay = d.directorOverride || dv;
   r.push('<tr class="row-info-val">' +
-    '<td colspan="1">' + esc(fmtDate(d.date)) + '</td>' +
-    '<td colspan="3" style="white-space:pre-wrap">' + esc(dv) + '</td>' +
+    '<td colspan="1" data-field="bidDate" data-raw="' + escA(d.date) + '">' + esc(fmtDate(d.date)) + '</td>' +
+    '<td colspan="3" style="white-space:pre-wrap" data-field="directorOverride" data-raw="' + escA(d.directorOverride || dv) + '">' + esc(dirDisplay) + '</td>' +
     '<td colspan="4" data-field="client" data-raw="' + escA(d.client) + '">' + esc(d.client) + '</td>' +
     '<td colspan="2" data-field="assignedTo" data-raw="' + escA(d.assignedTo) + '">' + esc(d.assignedTo) + '</td>' +
   '</tr>');
 
   r.push(secRow('Agency Info / Personnel / Contact'));
-  r.push(makeRow('Agency:',       esc(d.agency),       'agency',       d.agency));
-  r.push(makeRow('Address:',      esc(d.agencyAddress),'agencyAddress',d.agencyAddress));
-  r.push(makeRow('Phone:',        esc(d.agencyPhone),  'agencyPhone',  d.agencyPhone));
+  r.push('<tr><td class="label" colspan="1">Agency:</td>' +
+    '<td class="data" colspan="9" data-field="agency" data-raw="' + escA(d.agency) + '" data-agency-id="' + escA(d.agencyId || '') + '">' +
+    esc(d.agency) + '</td></tr>');
+  r.push('<tr><td class="label" colspan="1">Address:</td>' +
+    '<td class="data" colspan="9" id="agency-address-cell" style="white-space:pre-wrap">' + esc(d.agencyAddress) + '</td></tr>');
+  r.push('<tr><td class="label" colspan="1">Phone:</td>' +
+    '<td class="data" colspan="9" id="agency-phone-cell">' + esc(d.agencyPhone) + '</td></tr>');
 
   // Producer row — clickable popup with contact info
   var producersArr = Array.isArray(d.producers) ? d.producers : [];
@@ -340,6 +350,28 @@ function buildSheet(d) {
   r.push(makeRow('Delivery date:',  esc(fmtDateLong(d.deliveryDate)), 'deliveryDate',   d.deliveryDate));
   r.push(makeRow('Air date:',       esc(fmtDateLong(d.airDate)),      'airDate',        d.airDate));
 
+  r.push(secRow('Creative Reference'));
+  var creativeHtml = '';
+  if (d.creativeAttachments && d.creativeAttachments.length) {
+    creativeHtml = d.creativeAttachments.map(function(a) {
+      var isImage = a.type && a.type.startsWith('image/');
+      var isPdf   = a.type && a.type.indexOf('pdf') >= 0;
+      var icon    = isPdf ? '📄 ' : (isImage ? '🖼 ' : '📎 ');
+      var content = '';
+      if (isImage && a.thumb) {
+        content = '<a href="' + esc(a.url) + '" target="_blank">' +
+          '<img src="' + esc(a.thumb) + '" style="max-height:120px;max-width:200px;display:block;margin-bottom:4px;border:1px solid #ccc;">' +
+          '<span style="font-size:10px;color:#555;">' + esc(a.filename) + '</span></a>';
+      } else {
+        content = icon + '<a href="' + esc(a.url) + '" target="_blank">' + esc(a.filename) + '</a>';
+      }
+      return '<div style="margin-bottom:8px;">' + content + '</div>';
+    }).join('');
+  } else {
+    creativeHtml = '<span style="color:#999;font-style:italic;">No creative attached</span>';
+  }
+  r.push('<tr><td class="label" colspan="1">Creative:</td><td class="data" colspan="9">' + creativeHtml + '</td></tr>');
+
   r.push(secRow('Campaign Information'));
   r.push(makeRow('Launch or previous campaign:', '<span style="white-space:pre-wrap">' + esc(d.launchCampaign) + '</span>', 'launchCampaign', d.launchCampaign));
   r.push(makeRow('References:',  '<span style="white-space:pre-wrap">' + esc(d.references) + '</span>', 'references', d.references));
@@ -406,6 +438,29 @@ function enterEditMode() {
       // Each spot title row gets its own single-line text input
       el = document.createElement('input'); el.type = 'text';
       el.placeholder = 'Spot title…';
+    } else if (field === 'agency') {
+      el = document.createElement('input'); el.type = 'text';
+      el.setAttribute('list', 'dl-agencies');
+      el.placeholder = 'Type agency name…';
+      (function(cell) {
+        el.addEventListener('change', function() {
+          var typed = this.value.trim().toLowerCase();
+          var match = agenciesData.find(function(a) {
+            return a.name.trim().toLowerCase() === typed;
+          });
+          if (match) {
+            pendingAgencyId = match.id;
+            var addrCell = document.getElementById('agency-address-cell');
+            var phoneCell = document.getElementById('agency-phone-cell');
+            if (addrCell) addrCell.textContent = match.address || '';
+            if (phoneCell) phoneCell.textContent = match.phone || '';
+          }
+        });
+      })(td);
+    } else if (field === 'directorOverride') {
+      el = document.createElement('input'); el.type = 'text';
+      el.setAttribute('list', 'dl-directors');
+      el.placeholder = 'Director name…';
     } else if (field === 'assignedTo') {
       el = document.createElement('select');
       el.className = 'edit-input';
@@ -442,6 +497,7 @@ function exitEditMode(restore) {
   document.getElementById('btn-save').style.display   = 'none';
   document.getElementById('btn-cancel').style.display = 'none';
   document.getElementById('edit-status').textContent  = '';
+  pendingAgencyId = null;
   // Remove spot click handlers
   document.querySelectorAll('td[data-spot-type]').forEach(function(td) { td.onclick = null; });
   if (restore && currentData) document.getElementById('sheet-body').innerHTML = buildSheet(currentData);
@@ -470,6 +526,11 @@ async function saveChanges() {
   // Combine per-row titles into single newline-delimited spotTitle
   updates.spotTitle = spotTitleRows.map(function(t){ return t || ''; }).join('\n').replace(/\n+$/, '');
 
+  // Include pending agency ID if agency was changed
+  if (pendingAgencyId) {
+    updates.agencyId = pendingAgencyId;
+  }
+
   // Build spotGrid array from per-row edits
   var gridArr = [];
   for (var i = 0; i < NUM_SPOT_ROWS; i++) {
@@ -490,9 +551,21 @@ async function saveChanges() {
 
     // Update currentData to reflect saved values
     Object.keys(updates).forEach(function(k) {
-      if (k !== 'spotGrid') currentData[k] = updates[k];
+      if (k === 'spotGrid' || k === 'agencyId') return;
+      currentData[k] = updates[k];
     });
     currentData.spotGrid = gridArr;
+    if (updates.agencyId) {
+      currentData.agencyId = updates.agencyId;
+      // Update agency display from loaded agenciesData
+      var saved = agenciesData.find(function(a) { return a.id === updates.agencyId; });
+      if (saved) {
+        currentData.agency = saved.name;
+        currentData.agencyAddress = saved.address;
+        currentData.agencyPhone = saved.phone;
+      }
+    }
+    pendingAgencyId = null;
 
     exitEditMode(true);
     document.getElementById('edit-status').textContent = '✓ Saved';
@@ -515,6 +588,18 @@ function loadDirectorDatalist() {
   }).catch(function(){});
 }
 
+/* ── LOAD AGENCIES DATALIST ────────────────────────────────── */
+function loadAgenciesDatalist() {
+  fetch('/api/agencies').then(function(r){return r.json();}).then(function(list) {
+    agenciesData = list;
+    var dl = document.getElementById('dl-agencies');
+    dl.innerHTML = '';
+    list.forEach(function(a) {
+      var opt = document.createElement('option'); opt.value = a.name.trim(); dl.appendChild(opt);
+    });
+  }).catch(function(){});
+}
+
 /* ── INIT ──────────────────────────────────────────────────── */
 async function init() {
   try {
@@ -532,6 +617,7 @@ async function init() {
   }
 
   loadDirectorDatalist();
+  loadAgenciesDatalist();
 
   try {
     var res = await fetch('/api/lead?id=' + encodeURIComponent(id));

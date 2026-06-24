@@ -1,1 +1,10 @@
-{}
+{
+  "functions": {
+    "api/lead.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/agencies.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
+}

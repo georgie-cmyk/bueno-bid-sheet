@@ -19,8 +19,10 @@ const WRITABLE = {
   references:     'References',
   talent:         'Talent',
   treatmentNotes: 'Treatment Notes',
-  client:         'Client',
-  specialtyReel:  'Specialty Reel Created',
+  client:           'Client',
+  specialtyReel:    'Specialty Reel Created',
+  bidDate:          'Bid Sheet Date',
+  directorOverride: 'Director Override',
 };
 // spotNotes and spotGrid are handled together (spotGrid is embedded as JSON prefix in Spot Notes)
 
@@ -101,9 +103,14 @@ module.exports = async (req, res) => {
         }
       }
 
+      // Agency linked record update
+      if (updates.agencyId) {
+        fields['Agency'] = [updates.agencyId];
+      }
+
       // All other writable fields
       for (const [key, val] of Object.entries(updates)) {
-        if (key === 'spotGrid' || key === 'spotNotes') continue;
+        if (key === 'spotGrid' || key === 'spotNotes' || key === 'agencyId') continue;
         if (WRITABLE[key] !== undefined) fields[WRITABLE[key]] = val || null;
       }
 
@@ -156,6 +163,7 @@ module.exports = async (req, res) => {
       date:        f['Bid Sheet Date'] || f['Date'] || '',
       assignedTo:  selectNames(f['Assigned To']).join(', '),
 
+      agencyId:      agencyRecs[0]?.id || '',
       agency:        agencyRecs.map(r => r.fields['Company']).filter(Boolean).join(', '),
       agencyAddress: agencyRecs.map(r => r.fields['Full Address']).filter(Boolean).join('\n'),
       agencyPhone:   agencyRecs.map(r => r.fields['Main Office Number']).filter(Boolean).join(', '),
@@ -204,7 +212,17 @@ module.exports = async (req, res) => {
       talent:         f['Talent']         || '',
       specialtyReel:  f['Specialty Reel Created'] || '',
       treatmentNotes: f['Treatment Notes']|| '',
-      link:           f['Link']           || '',
+      link:             f['Link']             || '',
+      directorOverride: f['Director Override'] || '',
+      creativeAttachments: (f['Creative'] || []).map(function(a) {
+        return {
+          id:       a.id,
+          url:      a.url,
+          filename: a.filename,
+          type:     a.type || '',
+          thumb:    (a.thumbnails && a.thumbnails.large) ? a.thumbnails.large.url : null,
+        };
+      }),
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
