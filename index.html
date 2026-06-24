@@ -306,7 +306,8 @@ function buildSheet(d) {
   for (var i = 0; i < totalRows; i++) {
     var title = titles[i] || '';
     var rowGrid = grid[i] || { l: [], d: [] };
-    var fa = (i === 0) ? ' data-field="spotTitle" data-raw="' + escA(d.spotTitle || '') + '"' : '';
+    // Each row gets its own editable title cell
+    var fa = ' data-field="spotTitleRow" data-spot-title-row="' + i + '" data-raw="' + escA(title) + '"';
 
     var lc = LENGTH_COLS.map(function(col) {
       var checked = rowGrid.l.indexOf(col) >= 0;
@@ -399,16 +400,17 @@ function enterEditMode() {
   document.querySelectorAll('td[data-field]').forEach(function(td) {
     var field = td.getAttribute('data-field');
     var raw   = td.getAttribute('data-raw') || '';
-    var type  = FIELD_TYPES[field] || 'text';
     var el;
 
-    if (type === 'select' && field === 'assignedTo') {
+    if (field === 'spotTitleRow') {
+      // Each spot title row gets its own single-line text input
+      el = document.createElement('input'); el.type = 'text';
+      el.placeholder = 'Spot title…';
+    } else if (field === 'assignedTo') {
       el = document.createElement('select');
       el.className = 'edit-input';
       el.innerHTML = '<option value="">—</option>';
-      // Add current value immediately so something shows
       if (raw) { el.innerHTML += '<option value="' + escAttr(raw) + '" selected>' + escHtml(raw) + '</option>'; }
-      // Async populate from /api/people
       fetch('/api/people').then(function(r){return r.json();}).then(function(people) {
         el.innerHTML = '<option value="">—</option>';
         people.forEach(function(p) {
@@ -418,10 +420,10 @@ function enterEditMode() {
           el.appendChild(opt);
         });
       }).catch(function(){});
-    } else if (type === 'textarea') {
+    } else if (FIELD_TYPES[field] === 'textarea') {
       el = document.createElement('textarea');
       el.rows = Math.max(2, (raw.match(/\n/g)||[]).length + 2);
-    } else if (type === 'date') {
+    } else if (FIELD_TYPES[field] === 'date') {
       el = document.createElement('input'); el.type = 'date';
     } else {
       el = document.createElement('input'); el.type = 'text';
@@ -429,13 +431,6 @@ function enterEditMode() {
     el.className = 'edit-input'; el.value = raw; el.style.width = '100%';
     td.innerHTML = ''; td.style.whiteSpace = 'normal'; td.appendChild(el);
   });
-
-  // Add director datalist to spotTitle textarea if it exists
-  var stCell = document.querySelector('td[data-field="spotTitle"]');
-  if (stCell) {
-    var inp = stCell.querySelector('.edit-input');
-    if (inp) inp.placeholder = 'One title per line…';
-  }
 }
 
 function escAttr(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
@@ -460,10 +455,20 @@ async function saveChanges() {
 
   // Collect regular field updates
   var updates = {};
+  var spotTitleRows = [];
   document.querySelectorAll('td[data-field]').forEach(function(td) {
+    var field = td.getAttribute('data-field');
     var inp = td.querySelector('.edit-input');
-    if (inp) updates[td.getAttribute('data-field')] = inp.value;
+    if (!inp) return;
+    if (field === 'spotTitleRow') {
+      var ri = parseInt(td.getAttribute('data-spot-title-row') || '0');
+      spotTitleRows[ri] = inp.value;
+    } else {
+      updates[field] = inp.value;
+    }
   });
+  // Combine per-row titles into single newline-delimited spotTitle
+  updates.spotTitle = spotTitleRows.map(function(t){ return t || ''; }).join('\n').replace(/\n+$/, '');
 
   // Build spotGrid array from per-row edits
   var gridArr = [];
