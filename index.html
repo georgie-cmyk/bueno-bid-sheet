@@ -42,8 +42,22 @@
   .competition-item { margin-bottom: 2px; }
   a { color: #1155CC; text-decoration: underline; word-break: break-all; }
   .creative-item { display: block; margin-bottom: 2px; }
-  .contact-link { color: var(--brand); text-decoration: underline; font-weight: bold; }
+  .contact-link { color: var(--brand); text-decoration: underline; font-weight: bold; cursor: pointer; }
   .contact-link:hover { text-decoration: none; }
+
+  /* CONTACT POPUP */
+  #contact-popup {
+    display: none; position: fixed; z-index: 200;
+    background: #fff; border: 1px solid #c0c8d8; border-radius: 6px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.18); padding: 14px 16px 12px;
+    min-width: 220px; max-width: 300px; font-size: 12px; line-height: 1.6;
+  }
+  #contact-popup h4 { font-size: 13px; color: var(--brand); margin-bottom: 8px; padding-right: 20px; }
+  #contact-popup .popup-row { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 3px; color: #333; }
+  #contact-popup .popup-label { color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; min-width: 52px; padding-top: 1px; }
+  #contact-popup a { color: #1155CC; word-break: break-all; }
+  #popup-close { position: absolute; top: 8px; right: 10px; background: none; border: none; font-size: 16px; cursor: pointer; color: #888; line-height: 1; padding: 0; }
+  #popup-close:hover { color: #000; }
 
   /* EDIT MODE */
   .edit-input { width: 100%; font-family: Arial, Helvetica, sans-serif; font-size: 12px; padding: 2px 4px; border: 1px solid #2F5496; border-radius: 2px; background: #fff; resize: vertical; min-height: 24px; }
@@ -117,6 +131,13 @@
   <span id="edit-status"></span>
 </div>
 
+<!-- Contact popup -->
+<div id="contact-popup">
+  <button id="popup-close" onclick="closePopup()">&#10005;</button>
+  <h4 id="popup-name"></h4>
+  <div id="popup-body"></div>
+</div>
+
 <!-- Datalists for autocomplete -->
 <datalist id="dl-directors"></datalist>
 
@@ -160,9 +181,44 @@ function fmtDateLong(iso) {
 }
 function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escA(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/\n/g,'&#10;'); }
-function atLink(recordId) {
-  return 'https://airtable.com/' + AIRTABLE_BASE + '/' + AIRTABLE_PEOPLE + '/' + recordId;
+
+/* ── CONTACT POPUP ─────────────────────────────────────────── */
+function contactSpan(person) {
+  // person = { name, email, mobile, linkedin }
+  var data = JSON.stringify({ name: person.name, email: person.email || '', mobile: person.mobile || '', linkedin: person.linkedin || '' });
+  return '<span class="contact-link" data-contact=\'' + data.replace(/'/g, '&#39;') + '\'>' + esc(person.name) + '</span>';
 }
+
+function showPopup(el) {
+  var data; try { data = JSON.parse(el.getAttribute('data-contact')); } catch(e) { return; }
+  document.getElementById('popup-name').textContent = data.name;
+  var body = '';
+  if (data.email)    body += '<div class="popup-row"><span class="popup-label">Email</span><a href="mailto:' + esc(data.email) + '">' + esc(data.email) + '</a></div>';
+  if (data.mobile)   body += '<div class="popup-row"><span class="popup-label">Phone</span><span>' + esc(data.mobile) + '</span></div>';
+  if (data.linkedin) body += '<div class="popup-row"><span class="popup-label">LinkedIn</span><a href="' + esc(data.linkedin) + '" target="_blank">' + esc(data.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//,'')) + '</a></div>';
+  if (!data.email && !data.mobile && !data.linkedin) body = '<div style="color:#888;font-size:11px">No contact info on file</div>';
+  document.getElementById('popup-body').innerHTML = body;
+
+  var popup = document.getElementById('contact-popup');
+  popup.style.display = 'block';
+  var rect = el.getBoundingClientRect();
+  var top = rect.bottom + window.scrollY + 4;
+  var left = rect.left + window.scrollX;
+  // Keep within viewport
+  if (left + 300 > window.innerWidth) left = Math.max(0, window.innerWidth - 310);
+  popup.style.top  = top  + 'px';
+  popup.style.left = left + 'px';
+}
+
+function closePopup() { document.getElementById('contact-popup').style.display = 'none'; }
+
+document.addEventListener('click', function(e) {
+  var popup = document.getElementById('contact-popup');
+  if (!popup) return;
+  var el = e.target.closest ? e.target.closest('.contact-link') : null;
+  if (el) { e.stopPropagation(); showPopup(el); return; }
+  if (!popup.contains(e.target)) closePopup();
+});
 
 function makeRow(lbl, val, fkey, raw, lspan, vspan) {
   lspan = lspan || 1; vspan = vspan || 9;
@@ -212,14 +268,13 @@ function buildSheet(d) {
   r.push(makeRow('Address:',      esc(d.agencyAddress),'agencyAddress',d.agencyAddress));
   r.push(makeRow('Phone:',        esc(d.agencyPhone),  'agencyPhone',  d.agencyPhone));
 
-  // Producer row — show Airtable link if we have a record ID
+  // Producer row — clickable popup with contact info
+  var producersArr = Array.isArray(d.producers) ? d.producers : [];
   var producerDisplay = '';
-  if (d.producerName) {
-    if (d.producerIds && d.producerIds.length) {
-      producerDisplay = '<a class="contact-link" href="' + esc(atLink(d.producerIds[0])) + '" target="_blank">' + esc(d.producerName) + '</a>';
-    } else {
-      producerDisplay = esc(d.producerName);
-    }
+  if (producersArr.length) {
+    producerDisplay = producersArr.map(function(p) { return contactSpan(p); }).join(', ');
+  } else if (d.producerName) {
+    producerDisplay = esc(d.producerName);
   }
   r.push(makeRow('Producer:',     producerDisplay,     'producerName', d.producerName));
   r.push(makeRow('Direct line:',  esc(d.producerDirectLine), 'producerDirectLine', d.producerDirectLine));
@@ -228,19 +283,11 @@ function buildSheet(d) {
     d.producerEmail ? '<a href="mailto:' + esc(d.producerEmail) + '">' + esc(d.producerEmail) + '</a>' : '',
     'producerEmail', d.producerEmail));
 
-  // Creative team — link each to their Airtable contact card
+  // Creative team — clickable popup, no external links
   var creativesArr = Array.isArray(d.creatives) ? d.creatives : [];
-  var creativesRaw = creativesArr.map(function(c) {
-    return c.name + (c.linkedin ? ' - ' + c.linkedin : '');
-  }).join('\n');
+  var creativesRaw = creativesArr.map(function(c) { return c.name; }).join('\n');
   var ch = creativesArr.length ? creativesArr.map(function(c) {
-    var nameHtml = c.id
-      ? '<a class="contact-link" href="' + esc(atLink(c.id)) + '" target="_blank">' + esc(c.name) + '</a>'
-      : esc(c.name);
-    var linkedinHtml = c.linkedin
-      ? ' &ndash; <a href="' + esc(c.linkedin) + '" target="_blank">' + esc(c.linkedin) + '</a>'
-      : '';
-    return '<span class="creative-item">&bull; ' + nameHtml + linkedinHtml + '</span>';
+    return '<span class="creative-item">&bull; ' + contactSpan(c) + '</span>';
   }).join('') : '';
   r.push(makeRow('Creative Team:', ch, 'creatives', creativesRaw));
 

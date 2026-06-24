@@ -165,12 +165,20 @@ module.exports = async (req, res) => {
       producerMobile:     producerRecs.map(r => r.fields['Mobile']).filter(Boolean).join(', '),
       producerEmail,
       producerIds:        producerRecs.map(r => r.id),
+      producers: producerRecs.map(r => ({
+        id:       r.id,
+        name:     r.fields['Name']     || '',
+        email:    r.fields['Email']    || '',
+        mobile:   r.fields['Mobile']   || r.fields['Phone (Cell)'] || '',
+        linkedin: r.fields['LinkedIn'] || '',
+      })),
 
       creatives: creativeRecs.map(r => ({
         id:       r.id,
         name:     r.fields['Name']     || '',
         linkedin: r.fields['LinkedIn'] || '',
         email:    r.fields['Email']    || '',
+        mobile:   r.fields['Mobile']   || r.fields['Phone (Cell)'] || '',
       })),
 
       directors,
