@@ -6,13 +6,16 @@
 <title>Bueno Bid Spec</title>
 <style>
   :root {
-    --brand: #262A35;
-    --brand-mid:    color-mix(in srgb, var(--brand) 70%, white);
-    --brand-light:  color-mix(in srgb, var(--brand) 20%, white);
-    --brand-xlight: color-mix(in srgb, var(--brand) 12%, white);
+    --brand:        #262A35;
+    --accent:       #EE2F34;
+    --cream:        #FFFFE5;
+    --brand-mid:    color-mix(in srgb, var(--brand) 72%, var(--cream));
+    --brand-light:  color-mix(in srgb, var(--brand) 14%, var(--cream));
+    --brand-xlight: color-mix(in srgb, var(--brand) 6%, var(--cream));
+    --border:       #c8c4b4;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; background: #f0f0f0; color: #000; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; background: #e6e3d8; color: #000; }
   #loading, #error {
     display: flex; align-items: center; justify-content: center;
     height: 100vh; font-size: 14px; color: #555; flex-direction: column; gap: 12px;
@@ -20,27 +23,27 @@
   #error { color: #c00; }
   #sheet-wrap {
     display: none; max-width: 1100px; margin: 24px auto 80px;
-    background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    background: var(--cream); box-shadow: 0 4px 24px rgba(38,42,53,0.18);
   }
   table.sheet { width: 100%; border-collapse: collapse; table-layout: fixed; }
   table.sheet col.c-title  { width: 22%; }
   table.sheet col.c-narrow { width: 7.5%; }
-  table.sheet td { border: 1px solid #9FA8B0; padding: 5px 8px; vertical-align: top; line-height: 1.4; word-wrap: break-word; }
-  .row-masthead td { background: var(--brand); color: #fff; font-size: 15px; font-weight: bold; letter-spacing: 0.04em; padding: 10px 12px; text-align: left; border-color: var(--brand); }
-  .row-section td { background: var(--brand-mid); color: #fff; font-weight: bold; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 8px; border-color: var(--brand-mid); }
-  .row-info-hdr td { background: var(--brand-mid); color: #fff; font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; text-align: center; padding: 4px 8px; border-color: var(--brand); }
-  .row-info-val td { background: var(--brand-light); font-size: 12px; font-weight: bold; padding: 6px 8px; text-align: center; border-color: #9FA8B0; }
-  td.label { background: var(--brand-light); font-weight: bold; font-size: 11px; white-space: nowrap; vertical-align: top; padding: 5px 8px; color: var(--brand); }
-  td.data { background: #fff; white-space: pre-wrap; }
-  .row-spot-h1 td { background: var(--brand-xlight); font-weight: bold; font-size: 11px; text-align: center; padding: 4px 6px; border-color: #9FA8B0; }
-  .row-spot-h1 td:first-child { background: var(--brand-light); text-align: left; font-size: 11px; color: var(--brand); }
-  .row-spot-h2 td { background: var(--brand-xlight); font-size: 10px; font-weight: bold; text-align: center; padding: 3px 4px; border-color: #9FA8B0; }
+  table.sheet td { border: 1px solid var(--border); padding: 5px 8px; vertical-align: top; line-height: 1.4; word-wrap: break-word; }
+  .row-masthead td { background: var(--brand); color: var(--cream); font-size: 14px; font-weight: bold; letter-spacing: 0.08em; padding: 0; text-align: left; border-color: var(--brand); }
+  .row-section td { background: var(--brand); color: var(--cream); font-weight: bold; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-color: var(--brand); }
+  .row-info-hdr td { background: var(--brand); color: var(--cream); font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 4px 8px; border-color: var(--brand); }
+  .row-info-val td { background: var(--brand-xlight); font-size: 12px; font-weight: bold; padding: 7px 8px; text-align: center; border-color: var(--border); color: var(--brand); }
+  td.label { background: var(--brand-light); font-weight: bold; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 6px 8px; color: var(--brand); }
+  td.data { background: var(--cream); white-space: pre-wrap; color: #1a1a1a; }
+  .row-spot-h1 td { background: var(--brand-xlight); font-weight: bold; font-size: 10px; text-align: center; padding: 4px 6px; border-color: var(--border); letter-spacing: 0.04em; text-transform: uppercase; }
+  .row-spot-h1 td:first-child { background: var(--brand-light); text-align: left; font-size: 10px; color: var(--brand); text-transform: uppercase; letter-spacing: 0.04em; }
+  .row-spot-h2 td { background: var(--brand-xlight); font-size: 9px; font-weight: bold; text-align: center; padding: 3px 4px; border-color: var(--border); letter-spacing: 0.03em; }
   .row-spot-h2 td:first-child { background: var(--brand-light); }
-  .row-spot-data td { background: #fff; text-align: center; font-size: 12px; padding: 4px; border-color: #9FA8B0; vertical-align: middle; }
+  .row-spot-data td { background: var(--cream); text-align: center; font-size: 12px; padding: 4px; border-color: var(--border); vertical-align: middle; }
   .row-spot-data td:first-child { text-align: left; font-size: 11px; font-weight: bold; white-space: pre-wrap; vertical-align: top; padding: 5px 8px; }
-  .check { font-size: 14px; font-weight: bold; color: var(--brand); }
+  .check { font-size: 14px; font-weight: bold; color: var(--accent); }
   .competition-item { margin-bottom: 2px; }
-  a { color: #1155CC; text-decoration: underline; word-break: break-all; }
+  a { color: var(--accent); text-decoration: underline; word-break: break-all; }
   .creative-item { display: block; margin-bottom: 2px; }
   .contact-link { color: var(--brand); text-decoration: underline; font-weight: bold; cursor: pointer; }
   .contact-link:hover { text-decoration: none; }
@@ -63,20 +66,20 @@
   #popup-close:hover { color: #000; }
 
   /* EDIT MODE */
-  .edit-input { width: 100%; font-family: Arial, Helvetica, sans-serif; font-size: 12px; padding: 2px 4px; border: 1px solid #2F5496; border-radius: 2px; background: #fff; resize: vertical; min-height: 24px; }
-  .edit-input:focus { outline: 2px solid #2F5496; }
-  .editing td[data-field] { background: #f0f4ff !important; }
+  .edit-input { width: 100%; font-family: Arial, Helvetica, sans-serif; font-size: 12px; padding: 2px 4px; border: 1px solid var(--brand); border-radius: 2px; background: #fff; resize: vertical; min-height: 24px; }
+  .edit-input:focus { outline: 2px solid var(--accent); }
+  .editing td[data-field] { background: #fff !important; outline: 1.5px inset rgba(238,47,52,0.25); }
 
   /* Spot cells in edit mode */
   .editing td[data-spot-type] { cursor: pointer; }
   .editing td[data-spot-type]:hover { background: var(--brand-xlight) !important; }
-  td[data-spot-type].spot-checked { background: var(--brand-light) !important; }
+  td[data-spot-type].spot-checked { background: color-mix(in srgb, var(--accent) 15%, var(--cream)) !important; }
 
   /* BOTTOM BAR */
   #edit-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 20px; font-size: 13px; z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,0.2); }
   #edit-bar button { padding: 6px 18px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: bold; }
   #btn-edit   { background: rgba(255,255,255,0.9); color: var(--brand); }
-  #btn-save   { background: #4CAF50; color: #fff; }
+  #btn-save   { background: var(--accent); color: var(--cream); }
   #btn-cancel { background: rgba(255,255,255,0.3); color: #fff; }
   #colour-wrap { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
   #colour-wrap input[type=color] { width: 22px; height: 22px; padding: 0; border: none; cursor: pointer; border-radius: 3px; }
@@ -264,9 +267,13 @@ function buildSheet(d) {
   var r = [];
 
   r.push('<tr class="row-masthead"><td colspan="10" style="padding:0;">' +
-    '<div style="display:flex;align-items:center;gap:14px;padding:8px 12px;background:var(--brand);">' +
-    '<img src="https://wearebueno.com/images/pics/719_t2n7DC_bueno_logo_circle-6png.png" alt="Bueno" style="height:44px;width:44px;object-fit:contain;border-radius:50%;flex-shrink:0;" onerror="this.style.display=\'none\'">' +
-    '<span style="font-size:15px;font-weight:bold;letter-spacing:0.04em;white-space:nowrap;">BUENO BID SPECS SHEET</span>' +
+    '<div style="display:flex;align-items:center;gap:0;background:var(--brand);">' +
+    '<div style="width:4px;background:var(--accent);align-self:stretch;flex-shrink:0;"></div>' +
+    '<img src="/bueno-la.png" alt="Bueno" style="height:56px;width:56px;object-fit:contain;flex-shrink:0;margin:0 14px;" onerror="this.style.display=\'none\'">' +
+    '<div style="display:flex;flex-direction:column;gap:2px;">' +
+    '<span style="font-size:16px;font-weight:900;letter-spacing:0.12em;color:var(--cream);white-space:nowrap;line-height:1;">BUENO BID SPECS SHEET</span>' +
+    '<span style="font-size:9px;letter-spacing:0.2em;color:rgba(255,255,229,0.5);text-transform:uppercase;">wearebueno.com</span>' +
+    '</div>' +
     '</div></td></tr>');
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
 
@@ -404,13 +411,10 @@ function buildSheet(d) {
   r.push(makeRow('Any other useful info for treatment or calls?',
     '<span style="white-space:pre-wrap">' + esc(d.treatmentNotes) + '</span>', 'treatmentNotes', d.treatmentNotes));
 
-  // Footer
-  r.push('<tr><td colspan="10" style="background:#EE2F34;border-color:#EE2F34;padding:10px 16px;text-align:center;">' +
-    '<span style="color:#FFFFE5;font-size:15px;font-weight:900;letter-spacing:0.1em;font-family:Arial Black,Arial,sans-serif;">' +
-    'THANK&nbsp;Y' +
-    '<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:1.5px solid #FFFFE5;border-radius:50%;font-size:8px;font-style:italic;font-weight:400;letter-spacing:0;font-family:Georgia,serif;vertical-align:middle;margin:0 2px;line-height:1;">bueno</span>' +
-    'U!' +
-    '</span></td></tr>');
+  // Footer — actual Thank You GIF
+  r.push('<tr><td colspan="10" style="padding:0;border:none;background:var(--accent);">' +
+    '<img src="/thank-you.gif" alt="Thank You Bueno!" style="display:block;width:100%;max-height:60px;object-fit:cover;object-position:center;">' +
+    '</td></tr>');
 
   return r.join('\n');
 }
