@@ -163,13 +163,13 @@ var FIELD_TYPES = {
   producerName:'text', producerDirectLine:'text', producerMobile:'text', producerEmail:'text',
   creatives:'textarea',
   specialtyReel:'text',
-  bidDate:'date', directorOverride:'director-select',
-  competition:'competition-select'
+  bidDate:'date', directorOverride:'director-select'
 };
 
 var pendingAgencyId   = null;
 var agenciesData      = [];
 var directorsData     = [];
+var allPeopleData     = [];
 
 var currentData  = null;
 var spotGridEdit = {};  // rowIndex -> { l: [...], d: [...] }
@@ -190,10 +190,11 @@ function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;
 function escA(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/\n/g,'&#10;'); }
 
 /* ── CONTACT POPUP ─────────────────────────────────────────── */
-function contactSpan(person) {
+function contactSpan(person, labelHtml) {
   // person = { name, email, mobile, linkedin }
   var data = JSON.stringify({ name: person.name, email: person.email || '', mobile: person.mobile || '', linkedin: person.linkedin || '' });
-  return '<span class="contact-link" data-contact=\'' + data.replace(/'/g, '&#39;') + '\'>' + esc(person.name) + '</span>';
+  var display = (labelHtml !== undefined) ? labelHtml : esc(person.name);
+  return '<span class="contact-link" data-contact=\'' + data.replace(/'/g, '&#39;') + '\'>' + display + '</span>';
 }
 
 function showPopup(el) {
@@ -259,9 +260,11 @@ function buildSheet(d) {
   var grid = buildInitialGrid(d);
   var r = [];
 
-  r.push('<tr class="row-masthead"><td colspan="10" style="display:flex;align-items:center;gap:14px;padding:8px 12px;">' +
+  r.push('<tr class="row-masthead"><td colspan="10" style="padding:0;">' +
+    '<div style="display:flex;align-items:center;gap:14px;padding:8px 12px;background:var(--brand);">' +
     '<img src="https://wearebueno.com/images/pics/719_t2n7DC_bueno_logo_circle-6png.png" alt="Bueno" style="height:44px;width:44px;object-fit:contain;border-radius:50%;flex-shrink:0;" onerror="this.style.display=\'none\'">' +
-    '<span style="font-size:15px;font-weight:bold;letter-spacing:0.04em;">BUENO BID SPECS SHEET</span></td></tr>');
+    '<span style="font-size:15px;font-weight:bold;letter-spacing:0.04em;white-space:nowrap;">BUENO BID SPECS SHEET</span>' +
+    '</div></td></tr>');
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
 
   var dv = d.directors.length ? d.directors.map(function(x) { return x.name + (x.company ? ' / ' + x.company : ''); }).join('\n') : '';
@@ -301,7 +304,8 @@ function buildSheet(d) {
   var creativesArr = Array.isArray(d.creatives) ? d.creatives : [];
   var creativesRaw = creativesArr.map(function(c) { return c.name; }).join('\n');
   var ch = creativesArr.length ? creativesArr.map(function(c) {
-    return '<span class="creative-item">&bull; ' + contactSpan(c) + '</span>';
+    var label = c.title ? esc(c.name) + ' <span style="color:#666;font-style:italic;">(' + esc(c.title) + ')</span>' : esc(c.name);
+    return '<span class="creative-item">&bull; ' + contactSpan(c, label) + '</span>';
   }).join('') : '';
   r.push(makeRow('Creative Team:', ch, 'creatives', creativesRaw));
 
@@ -342,9 +346,17 @@ function buildSheet(d) {
   r.push(makeRow('Notes:', '<span style="white-space:pre-wrap">' + esc(d.spotNotes) + '</span>', 'spotNotes', d.spotNotes));
   r.push(makeRow('Budget information:', esc(d.budget), 'budget', d.budget));
 
-  var competitionArr = Array.isArray(d.competition) ? d.competition : (d.competition||'').split('\n').filter(Boolean);
-  var comp = competitionArr.length ? competitionArr.map(function(c){ return '<div class="competition-item">&bull; ' + esc(c) + '</div>'; }).join('') : '';
-  r.push(makeRow('Director competition:', comp, 'competition', competitionArr.join('\n')));
+  // Director competition — 3 individual rows, each with a director + reel link
+  var compData = Array.isArray(d.competitionData) ? d.competitionData : [];
+  for (var ci = 0; ci < 3; ci++) {
+    var cd = compData[ci] || null;
+    var cdLabel = ci === 0 ? 'Director competition:' : '';
+    var cdHtml = cd && cd.name
+      ? esc(cd.name) + (cd.reel ? ' &mdash; <a href="' + esc(cd.reel) + '" target="_blank">Reel</a>' : '')
+      : '&nbsp;';
+    r.push('<tr><td class="label" colspan="1">' + cdLabel + '</td>' +
+      '<td class="data" colspan="9" data-field="comp-dir-' + ci + '" data-raw="' + escA(cd ? cd.id : '') + '">' + cdHtml + '</td></tr>');
+  }
 
   r.push(makeRow('Treatment due:',  esc(fmtDateLong(d.treatmentDue)), 'treatmentDue',  d.treatmentDue));
   r.push(makeRow('Bid due:',        esc(fmtDateLong(d.bidDue)),       'bidDue',         d.bidDue));
@@ -480,24 +492,25 @@ function enterEditMode() {
           dirs.forEach(function(d) { var o=document.createElement('option'); o.value=d.name; o.textContent=d.name; if(d.name===curDir) o.selected=true; el.appendChild(o); });
         }).catch(function(){});
       }
-    } else if (field === 'competition') {
-      // Multi-select from directors database
-      var curIds = (currentData && currentData.competitionIds) ? currentData.competitionIds : [];
+    } else if (field.indexOf('comp-dir-') === 0) {
+      // Competition director row — dropdown of all people
+      var curCompId = raw;
       el = document.createElement('select');
-      el.multiple = true;
-      el.style.height = '120px';
-      el.title = 'Hold Cmd/Ctrl to select multiple';
-      var buildCompSelect = function(dirs) {
-        directorsData = dirs;
-        el.innerHTML = '';
-        dirs.forEach(function(d) {
-          var o = document.createElement('option'); o.value = d.id; o.textContent = d.name;
-          if (curIds.indexOf(d.id) >= 0) o.selected = true;
-          el.appendChild(o);
-        });
-      };
-      if (directorsData.length) { buildCompSelect(directorsData); }
-      else { fetch('/api/directors').then(function(r){return r.json();}).then(buildCompSelect).catch(function(){}); }
+      el.innerHTML = '<option value="">— Select director —</option>';
+      var buildCompDirSelect = (function(select, currentId) {
+        return function(people) {
+          allPeopleData = people;
+          select.innerHTML = '<option value="">— Select director —</option>';
+          people.forEach(function(p) {
+            var o = document.createElement('option');
+            o.value = p.id; o.textContent = p.name;
+            if (p.id === currentId) o.selected = true;
+            select.appendChild(o);
+          });
+        };
+      })(el, curCompId);
+      if (allPeopleData.length) { buildCompDirSelect(allPeopleData); }
+      else { fetch('/api/people').then(function(r){return r.json();}).then(buildCompDirSelect).catch(function(){}); }
     } else if (field === 'assignedTo') {
       el = document.createElement('select');
       el.className = 'edit-input';
@@ -518,7 +531,9 @@ function enterEditMode() {
     } else if (FIELD_TYPES[field] === 'date') {
       el = document.createElement('input'); el.type = 'date';
     } else {
-      el = document.createElement('input'); el.type = 'text';
+      // Default: multi-line textarea so users can add line breaks
+      el = document.createElement('textarea');
+      el.rows = Math.max(2, (raw.match(/\n/g)||[]).length + 2);
     }
     el.className = 'edit-input'; el.value = raw; el.style.width = '100%';
     td.innerHTML = ''; td.style.whiteSpace = 'normal'; td.appendChild(el);
@@ -556,6 +571,8 @@ async function saveChanges() {
     if (field === 'spotTitleRow') {
       var ri = parseInt(td.getAttribute('data-spot-title-row') || '0');
       spotTitleRows[ri] = inp.value;
+    } else if (field.indexOf('comp-dir-') === 0) {
+      // handled separately below
     } else {
       updates[field] = inp.value;
     }
@@ -568,11 +585,16 @@ async function saveChanges() {
     updates.agencyId = pendingAgencyId;
   }
 
-  // Collect competition multi-select IDs
-  document.querySelectorAll('td[data-field="competition"] select').forEach(function(sel) {
-    var ids = Array.from(sel.selectedOptions).map(function(o) { return o.value; });
-    updates.competitionIds = ids;
-  });
+  // Collect competition IDs from the 3 individual director rows
+  var compIds = [];
+  for (var ci = 0; ci < 3; ci++) {
+    var compTd = document.querySelector('td[data-field="comp-dir-' + ci + '"]');
+    if (compTd) {
+      var compSel = compTd.querySelector('select');
+      if (compSel && compSel.value) compIds.push(compSel.value);
+    }
+  }
+  updates.competitionIds = compIds;
 
   // Build spotGrid array from per-row edits
   var gridArr = [];
@@ -594,13 +616,12 @@ async function saveChanges() {
 
     // Update currentData to reflect saved values
     Object.keys(updates).forEach(function(k) {
-      if (k === 'spotGrid' || k === 'agencyId') return;
+      if (k === 'spotGrid' || k === 'agencyId' || k === 'competitionIds') return;
       currentData[k] = updates[k];
     });
     currentData.spotGrid = gridArr;
     if (updates.agencyId) {
       currentData.agencyId = updates.agencyId;
-      // Update agency display from loaded agenciesData
       var saved = agenciesData.find(function(a) { return a.id === updates.agencyId; });
       if (saved) {
         currentData.agency = saved.name;
@@ -608,6 +629,12 @@ async function saveChanges() {
         currentData.agencyPhone = saved.phone;
       }
     }
+    // Update competition data from selected people
+    currentData.competitionIds = compIds;
+    currentData.competitionData = compIds.map(function(id) {
+      var p = allPeopleData.find(function(p) { return p.id === id; });
+      return p ? { id: p.id, name: p.name, reel: p.reel || '' } : { id: id, name: id, reel: '' };
+    });
     pendingAgencyId = null;
 
     exitEditMode(true);

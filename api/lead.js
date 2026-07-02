@@ -170,12 +170,25 @@ module.exports = async (req, res) => {
 
       agencyId:      agencyRecs[0]?.id || '',
       agency:        agencyRecs.map(r => r.fields['Company']).filter(Boolean).join(', '),
-      agencyAddress: agencyRecs.map(r => r.fields['Full Address']).filter(Boolean).join('\n'),
+      agencyAddress: agencyRecs.map(r => {
+        const name = (r.fields['Company'] || '').trim();
+        const addr = (r.fields['Full Address'] || '').trim();
+        const lines = addr.split('\n');
+        // Strip first line if it duplicates the company name
+        return (lines[0] && lines[0].trim().toLowerCase() === name.toLowerCase())
+          ? lines.slice(1).join('\n').trim()
+          : addr;
+      }).filter(Boolean).join('\n'),
       agencyPhone:   agencyRecs.map(r => r.fields['Main Office Number']).filter(Boolean).join(', '),
 
       producerName:       producerRecs.map(r => r.fields['Name']).filter(Boolean).join(', '),
-      producerDirectLine: producerRecs.map(r => r.fields['Phone (Cell)']).filter(Boolean).join(', '),
-      producerMobile:     producerRecs.map(r => r.fields['Mobile']).filter(Boolean).join(', '),
+      producerDirectLine: producerRecs.map(r => {
+        const cell   = r.fields['Phone (Cell)'] || '';
+        const mobile = r.fields['Mobile'] || '';
+        // Only show direct line if it differs from mobile
+        return (cell && cell !== mobile) ? cell : '';
+      }).filter(Boolean).join(', '),
+      producerMobile: producerRecs.map(r => r.fields['Mobile'] || r.fields['Phone (Cell)'] || '').filter(Boolean).join(', '),
       producerEmail,
       producerIds:        producerRecs.map(r => r.id),
       producers: producerRecs.map(r => ({
@@ -189,6 +202,7 @@ module.exports = async (req, res) => {
       creatives: creativeRecs.map(r => ({
         id:       r.id,
         name:     r.fields['Name']     || '',
+        title:    r.fields['Title']    || r.fields['Job Title'] || r.fields['Role'] || '',
         linkedin: r.fields['LinkedIn'] || '',
         email:    r.fields['Email']    || '',
         mobile:   r.fields['Mobile']   || r.fields['Phone (Cell)'] || '',
@@ -197,6 +211,11 @@ module.exports = async (req, res) => {
       directors,
       competition:    competitionRecs.map(r => r.fields['Name']).filter(Boolean),
       competitionIds: competitionRecs.map(r => r.id),
+      competitionData: competitionRecs.map(r => ({
+        id:   r.id,
+        name: r.fields['Name'] || '',
+        reel: r.fields['Reel'] || r.fields['Reel Link'] || r.fields['Link'] || r.fields['Website'] || '',
+      })),
 
       spotTitle:        f['Spot Title']        || '',
       spotLength:       selectNames(f['Spot Length']),
