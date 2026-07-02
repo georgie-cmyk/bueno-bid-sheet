@@ -108,9 +108,14 @@ module.exports = async (req, res) => {
         fields['Agency'] = [updates.agencyId];
       }
 
+      // Competition linked record update
+      if (updates.competitionIds && Array.isArray(updates.competitionIds)) {
+        fields['Competition'] = updates.competitionIds;
+      }
+
       // All other writable fields
       for (const [key, val] of Object.entries(updates)) {
-        if (key === 'spotGrid' || key === 'spotNotes' || key === 'agencyId') continue;
+        if (key === 'spotGrid' || key === 'spotNotes' || key === 'agencyId' || key === 'competitionIds') continue;
         if (WRITABLE[key] !== undefined) fields[WRITABLE[key]] = val || null;
       }
 
@@ -190,7 +195,8 @@ module.exports = async (req, res) => {
       })),
 
       directors,
-      competition: competitionRecs.map(r => r.fields['Name']).filter(Boolean),
+      competition:    competitionRecs.map(r => r.fields['Name']).filter(Boolean),
+      competitionIds: competitionRecs.map(r => r.id),
 
       spotTitle:        f['Spot Title']        || '',
       spotLength:       selectNames(f['Spot Length']),

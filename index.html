@@ -161,13 +161,15 @@ var FIELD_TYPES = {
   client:'text', assignedTo:'select',
   agency:'agency-select',
   producerName:'text', producerDirectLine:'text', producerMobile:'text', producerEmail:'text',
-  creatives:'textarea', competition:'textarea',
+  creatives:'textarea',
   specialtyReel:'text',
-  bidDate:'date', directorOverride:'director-select'
+  bidDate:'date', directorOverride:'director-select',
+  competition:'competition-select'
 };
 
-var pendingAgencyId = null;
-var agenciesData    = [];
+var pendingAgencyId   = null;
+var agenciesData      = [];
+var directorsData     = [];
 
 var currentData  = null;
 var spotGridEdit = {};  // rowIndex -> { l: [...], d: [...] }
@@ -257,7 +259,9 @@ function buildSheet(d) {
   var grid = buildInitialGrid(d);
   var r = [];
 
-  r.push('<tr class="row-masthead"><td colspan="10">BUENO BID SPECS SHEET</td></tr>');
+  r.push('<tr class="row-masthead"><td colspan="10" style="display:flex;align-items:center;gap:14px;padding:8px 12px;">' +
+    '<img src="https://wearebueno.com/images/pics/719_t2n7DC_bueno_logo_circle-6png.png" alt="Bueno" style="height:44px;width:44px;object-fit:contain;border-radius:50%;flex-shrink:0;" onerror="this.style.display=\'none\'">' +
+    '<span style="font-size:15px;font-weight:bold;letter-spacing:0.04em;">BUENO BID SPECS SHEET</span></td></tr>');
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
 
   var dv = d.directors.length ? d.directors.map(function(x) { return x.name + (x.company ? ' / ' + x.company : ''); }).join('\n') : '';
@@ -458,9 +462,42 @@ function enterEditMode() {
         });
       })(td);
     } else if (field === 'directorOverride') {
-      el = document.createElement('input'); el.type = 'text';
-      el.setAttribute('list', 'dl-directors');
-      el.placeholder = 'Director name…';
+      el = document.createElement('select');
+      el.innerHTML = '<option value="">— Select director —</option>';
+      var curDir = raw;
+      if (curDir) { el.innerHTML += '<option value="' + escAttr(curDir) + '" selected>' + escHtml(curDir) + '</option>'; }
+      if (directorsData.length) {
+        el.innerHTML = '<option value="">— Select director —</option>';
+        directorsData.forEach(function(d) {
+          var o = document.createElement('option'); o.value = d.name; o.textContent = d.name;
+          if (d.name === curDir) o.selected = true;
+          el.appendChild(o);
+        });
+      } else {
+        fetch('/api/directors').then(function(r){return r.json();}).then(function(dirs) {
+          directorsData = dirs;
+          el.innerHTML = '<option value="">— Select director —</option>';
+          dirs.forEach(function(d) { var o=document.createElement('option'); o.value=d.name; o.textContent=d.name; if(d.name===curDir) o.selected=true; el.appendChild(o); });
+        }).catch(function(){});
+      }
+    } else if (field === 'competition') {
+      // Multi-select from directors database
+      var curIds = (currentData && currentData.competitionIds) ? currentData.competitionIds : [];
+      el = document.createElement('select');
+      el.multiple = true;
+      el.style.height = '120px';
+      el.title = 'Hold Cmd/Ctrl to select multiple';
+      var buildCompSelect = function(dirs) {
+        directorsData = dirs;
+        el.innerHTML = '';
+        dirs.forEach(function(d) {
+          var o = document.createElement('option'); o.value = d.id; o.textContent = d.name;
+          if (curIds.indexOf(d.id) >= 0) o.selected = true;
+          el.appendChild(o);
+        });
+      };
+      if (directorsData.length) { buildCompSelect(directorsData); }
+      else { fetch('/api/directors').then(function(r){return r.json();}).then(buildCompSelect).catch(function(){}); }
     } else if (field === 'assignedTo') {
       el = document.createElement('select');
       el.className = 'edit-input';
@@ -531,6 +568,12 @@ async function saveChanges() {
     updates.agencyId = pendingAgencyId;
   }
 
+  // Collect competition multi-select IDs
+  document.querySelectorAll('td[data-field="competition"] select').forEach(function(sel) {
+    var ids = Array.from(sel.selectedOptions).map(function(o) { return o.value; });
+    updates.competitionIds = ids;
+  });
+
   // Build spotGrid array from per-row edits
   var gridArr = [];
   for (var i = 0; i < NUM_SPOT_ROWS; i++) {
@@ -577,14 +620,12 @@ async function saveChanges() {
   }
 }
 
-/* ── LOAD DIRECTOR DATALIST ────────────────────────────────── */
+/* ── LOAD DIRECTORS ────────────────────────────────────────── */
 function loadDirectorDatalist() {
   fetch('/api/directors').then(function(r){return r.json();}).then(function(dirs) {
+    directorsData = dirs;
     var dl = document.getElementById('dl-directors');
-    dl.innerHTML = '';
-    dirs.forEach(function(d) {
-      var opt = document.createElement('option'); opt.value = d.name; dl.appendChild(opt);
-    });
+    if (dl) { dl.innerHTML = ''; dirs.forEach(function(d) { var o=document.createElement('option'); o.value=d.name; dl.appendChild(o); }); }
   }).catch(function(){});
 }
 
