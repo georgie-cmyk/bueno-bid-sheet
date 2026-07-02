@@ -8,14 +8,13 @@
   :root {
     --brand:        #262A35;
     --accent:       #EE2F34;
-    --cream:        #FFFFE5;
-    --brand-mid:    color-mix(in srgb, var(--brand) 72%, var(--cream));
-    --brand-light:  color-mix(in srgb, var(--brand) 14%, var(--cream));
-    --brand-xlight: color-mix(in srgb, var(--brand) 6%, var(--cream));
-    --border:       #c8c4b4;
+    --brand-mid:    color-mix(in srgb, var(--brand) 68%, white);
+    --brand-light:  color-mix(in srgb, var(--brand) 12%, white);
+    --brand-xlight: color-mix(in srgb, var(--brand) 5%, white);
+    --border:       #c4c8cc;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; background: #e6e3d8; color: #000; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; background: #f0f0f0; color: #000; }
   #loading, #error {
     display: flex; align-items: center; justify-content: center;
     height: 100vh; font-size: 14px; color: #555; flex-direction: column; gap: 12px;
@@ -23,23 +22,23 @@
   #error { color: #c00; }
   #sheet-wrap {
     display: none; max-width: 1100px; margin: 24px auto 80px;
-    background: var(--cream); box-shadow: 0 4px 24px rgba(38,42,53,0.18);
+    background: #fff; box-shadow: 0 4px 24px rgba(38,42,53,0.18);
   }
   table.sheet { width: 100%; border-collapse: collapse; table-layout: fixed; }
   table.sheet col.c-title  { width: 22%; }
   table.sheet col.c-narrow { width: 7.5%; }
   table.sheet td { border: 1px solid var(--border); padding: 5px 8px; vertical-align: top; line-height: 1.4; word-wrap: break-word; }
-  .row-masthead td { background: var(--brand); color: var(--cream); font-size: 14px; font-weight: bold; letter-spacing: 0.08em; padding: 0; text-align: left; border-color: var(--brand); }
-  .row-section td { background: var(--brand); color: var(--cream); font-weight: bold; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-color: var(--brand); }
-  .row-info-hdr td { background: var(--brand); color: var(--cream); font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 4px 8px; border-color: var(--brand); }
+  .row-masthead td { background: var(--brand); color: #fff; font-size: 14px; font-weight: bold; letter-spacing: 0.08em; padding: 0; text-align: left; border-color: var(--brand); }
+  .row-section td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-color: var(--brand); }
+  .row-info-hdr td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 4px 8px; border-color: var(--brand); }
   .row-info-val td { background: var(--brand-xlight); font-size: 12px; font-weight: bold; padding: 7px 8px; text-align: center; border-color: var(--border); color: var(--brand); }
   td.label { background: var(--brand-light); font-weight: bold; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 6px 8px; color: var(--brand); }
-  td.data { background: var(--cream); white-space: pre-wrap; color: #1a1a1a; }
+  td.data { background: #fff; white-space: pre-wrap; color: #1a1a1a; }
   .row-spot-h1 td { background: var(--brand-xlight); font-weight: bold; font-size: 10px; text-align: center; padding: 4px 6px; border-color: var(--border); letter-spacing: 0.04em; text-transform: uppercase; }
   .row-spot-h1 td:first-child { background: var(--brand-light); text-align: left; font-size: 10px; color: var(--brand); text-transform: uppercase; letter-spacing: 0.04em; }
   .row-spot-h2 td { background: var(--brand-xlight); font-size: 9px; font-weight: bold; text-align: center; padding: 3px 4px; border-color: var(--border); letter-spacing: 0.03em; }
   .row-spot-h2 td:first-child { background: var(--brand-light); }
-  .row-spot-data td { background: var(--cream); text-align: center; font-size: 12px; padding: 4px; border-color: var(--border); vertical-align: middle; }
+  .row-spot-data td { background: #fff; text-align: center; font-size: 12px; padding: 4px; border-color: var(--border); vertical-align: middle; }
   .row-spot-data td:first-child { text-align: left; font-size: 11px; font-weight: bold; white-space: pre-wrap; vertical-align: top; padding: 5px 8px; }
   .check { font-size: 14px; font-weight: bold; color: var(--accent); }
   .competition-item { margin-bottom: 2px; }
@@ -73,13 +72,13 @@
   /* Spot cells in edit mode */
   .editing td[data-spot-type] { cursor: pointer; }
   .editing td[data-spot-type]:hover { background: var(--brand-xlight) !important; }
-  td[data-spot-type].spot-checked { background: color-mix(in srgb, var(--accent) 15%, var(--cream)) !important; }
+  td[data-spot-type].spot-checked { background: color-mix(in srgb, var(--accent) 15%, white) !important; }
 
   /* BOTTOM BAR */
   #edit-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 20px; font-size: 13px; z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,0.2); }
   #edit-bar button { padding: 6px 18px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: bold; }
   #btn-edit   { background: rgba(255,255,255,0.9); color: var(--brand); }
-  #btn-save   { background: var(--accent); color: var(--cream); }
+  #btn-save   { background: var(--accent); color: #fff; }
   #btn-cancel { background: rgba(255,255,255,0.3); color: #fff; }
   #colour-wrap { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
   #colour-wrap input[type=color] { width: 22px; height: 22px; padding: 0; border: none; cursor: pointer; border-radius: 3px; }
@@ -176,6 +175,7 @@ var pendingAgencyId   = null;
 var agenciesData      = [];
 var directorsData     = [];
 var allPeopleData     = [];
+var staffData         = [];
 
 var currentData  = null;
 var spotGridEdit = {};  // rowIndex -> { l: [...], d: [...] }
@@ -271,8 +271,7 @@ function buildSheet(d) {
     '<div style="width:4px;background:var(--accent);align-self:stretch;flex-shrink:0;"></div>' +
     '<img src="/bueno-la.png" alt="Bueno" style="height:56px;width:56px;object-fit:contain;flex-shrink:0;margin:0 14px;" onerror="this.style.display=\'none\'">' +
     '<div style="display:flex;flex-direction:column;gap:2px;">' +
-    '<span style="font-size:16px;font-weight:900;letter-spacing:0.12em;color:var(--cream);white-space:nowrap;line-height:1;">BUENO BID SPECS SHEET</span>' +
-    '<span style="font-size:9px;letter-spacing:0.2em;color:rgba(255,255,229,0.5);text-transform:uppercase;">wearebueno.com</span>' +
+    '<span style="font-size:16px;font-weight:900;letter-spacing:0.12em;color:#fff;white-space:nowrap;line-height:1;">BUENO BID SPECS SHEET</span>' +
     '</div>' +
     '</div></td></tr>');
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
@@ -411,9 +410,9 @@ function buildSheet(d) {
   r.push(makeRow('Any other useful info for treatment or calls?',
     '<span style="white-space:pre-wrap">' + esc(d.treatmentNotes) + '</span>', 'treatmentNotes', d.treatmentNotes));
 
-  // Footer — actual Thank You GIF
-  r.push('<tr><td colspan="10" style="padding:0;border:none;background:var(--accent);">' +
-    '<img src="/thank-you.gif" alt="Thank You Bueno!" style="display:block;width:100%;max-height:60px;object-fit:cover;object-position:center;">' +
+  // Footer — actual Thank You GIF (small, same height as logo)
+  r.push('<tr><td colspan="10" style="padding:8px 0;border:none;background:var(--brand);text-align:center;">' +
+    '<img src="/thank-you.gif" alt="Thank You Bueno!" style="display:inline-block;height:56px;width:auto;">' +
     '</td></tr>');
 
   return r.join('\n');
@@ -489,6 +488,27 @@ function enterEditMode() {
           }
         });
       })(td);
+    } else if (field === 'assignedTo') {
+      var curSalesRep = raw;
+      el = document.createElement('select');
+      el.innerHTML = '<option value="">— Select sales rep —</option>';
+      if (curSalesRep) {
+        el.innerHTML += '<option value="' + escAttr(curSalesRep) + '" selected>' + escHtml(curSalesRep) + '</option>';
+      }
+      var buildSalesRepSelect = (function(select, current) {
+        return function(people) {
+          staffData = people;
+          select.innerHTML = '<option value="">— Select sales rep —</option>';
+          people.forEach(function(p) {
+            var o = document.createElement('option');
+            o.value = p.name; o.textContent = p.name;
+            if (p.name === current) o.selected = true;
+            select.appendChild(o);
+          });
+        };
+      })(el, curSalesRep);
+      if (staffData.length) { buildSalesRepSelect(staffData); }
+      else { fetch('/api/staff').then(function(r){return r.json();}).then(buildSalesRepSelect).catch(function(){}); }
     } else if (field === 'directorOverride') {
       el = document.createElement('select');
       el.innerHTML = '<option value="">— Select director —</option>';
@@ -658,6 +678,13 @@ function loadDirectorDatalist() {
   }).catch(function(){});
 }
 
+/* ── LOAD STAFF (for Sales Rep dropdown) ──────────────────── */
+function loadStaff() {
+  fetch('/api/staff').then(function(r){return r.json();}).then(function(list) {
+    staffData = list;
+  }).catch(function(){});
+}
+
 /* ── LOAD AGENCIES DATALIST ────────────────────────────────── */
 function loadAgenciesDatalist() {
   fetch('/api/agencies').then(function(r){return r.json();}).then(function(list) {
@@ -688,6 +715,7 @@ async function init() {
 
   loadDirectorDatalist();
   loadAgenciesDatalist();
+  loadStaff();
 
   try {
     var res = await fetch('/api/lead?id=' + encodeURIComponent(id));
