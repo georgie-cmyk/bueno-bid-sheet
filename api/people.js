@@ -1,6 +1,9 @@
-// Returns all People records (used for competition director selects)
+// Returns People records where Function includes "Director" (for competition director selects)
 const BASE_ID      = 'appb2j15wK5KPtFF3';
 const PEOPLE_TABLE = 'tblX85mK7o9AMp8Uy';
+
+// Filter: Function multipleSelect contains "Director"
+const FILTER = encodeURIComponent('FIND("Director",ARRAYJOIN({Function},","))>0');
 
 async function atGet(path, token) {
   const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${path}`, {
@@ -24,7 +27,9 @@ module.exports = async (req, res) => {
     const people = [];
     let offset = null;
     do {
-      const params = 'fields[]=Name&fields[]=Reel&fields[]=Reel+Link&fields[]=Link&pageSize=100' +
+      const params = 'fields[]=Name&fields[]=Reel&fields[]=Reel+Link&fields[]=Link' +
+        '&filterByFormula=' + FILTER +
+        '&pageSize=100' +
         (offset ? '&offset=' + encodeURIComponent(offset) : '');
       const data = await atGet(`${PEOPLE_TABLE}?${params}`, token);
       for (const r of (data.records || [])) {
