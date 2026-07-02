@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
       const formula = batch.length === 1
         ? `RECORD_ID()='${batch[0]}'`
         : `OR(${batch.map(id => `RECORD_ID()='${id}'`).join(',')})`;
-      const params = `fields[]=Name&fields[]=Reel&fields[]=Reel+Link&fields[]=Link&filterByFormula=${encodeURIComponent(formula)}`;
+      const params = `fields[]=Name&fields[]=Greatest+Hits+Reel&fields[]=Website+Reel&filterByFormula=${encodeURIComponent(formula)}`;
       const data = await atGet(`${PEOPLE_TABLE}?${params}`, token);
       for (const r of (data.records || [])) {
         const name = (r.fields['Name'] || '').trim();
@@ -57,7 +57,7 @@ module.exports = async (req, res) => {
         directors.push({
           id:   r.id,
           name,
-          reel: r.fields['Reel'] || r.fields['Reel Link'] || r.fields['Link'] || '',
+          reel: r.fields['Greatest Hits Reel'] || r.fields['Website Reel'] || '',
         });
       }
     }

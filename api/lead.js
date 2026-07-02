@@ -108,6 +108,11 @@ module.exports = async (req, res) => {
         fields['Agency'] = [updates.agencyId];
       }
 
+      // Assigned To multipleSelects update
+      if (updates.assignedTo !== undefined) {
+        fields['Assigned To'] = updates.assignedTo ? [updates.assignedTo] : [];
+      }
+
       // Competition linked record update
       if (updates.competitionIds && Array.isArray(updates.competitionIds)) {
         fields['Competition'] = updates.competitionIds;
@@ -115,7 +120,7 @@ module.exports = async (req, res) => {
 
       // All other writable fields
       for (const [key, val] of Object.entries(updates)) {
-        if (key === 'spotGrid' || key === 'spotNotes' || key === 'agencyId' || key === 'competitionIds') continue;
+        if (key === 'spotGrid' || key === 'spotNotes' || key === 'agencyId' || key === 'competitionIds' || key === 'assignedTo') continue;
         if (WRITABLE[key] !== undefined) fields[WRITABLE[key]] = val || null;
       }
 
@@ -166,7 +171,7 @@ module.exports = async (req, res) => {
       id: lead.id,
       client:      f['Client'] || '',
       date:        f['Bid Sheet Date'] || f['Date'] || '',
-      assignedTo:  selectNames(f['Assigned To']).join(', '),
+      assignedTo:  selectNames(f['Assigned To'])[0] || '',
 
       agencyId:      agencyRecs[0]?.id || '',
       agency:        agencyRecs.map(r => r.fields['Company']).filter(Boolean).join(', '),
@@ -214,7 +219,7 @@ module.exports = async (req, res) => {
       competitionData: competitionRecs.map(r => ({
         id:   r.id,
         name: r.fields['Name'] || '',
-        reel: r.fields['Reel'] || r.fields['Reel Link'] || r.fields['Link'] || r.fields['Website'] || '',
+        reel: r.fields['Greatest Hits Reel'] || r.fields['Website Reel'] || '',
       })),
 
       spotTitle:        f['Spot Title']        || '',

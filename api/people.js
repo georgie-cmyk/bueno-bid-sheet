@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
     const people = [];
     let offset = null;
     do {
-      const params = 'fields[]=Name&fields[]=Reel&fields[]=Reel+Link&fields[]=Link' +
+      const params = 'fields[]=Name&fields[]=Greatest+Hits+Reel&fields[]=Website+Reel' +
         '&filterByFormula=' + FILTER +
         '&pageSize=100' +
         (offset ? '&offset=' + encodeURIComponent(offset) : '');
@@ -38,7 +38,7 @@ module.exports = async (req, res) => {
         people.push({
           id:   r.id,
           name,
-          reel: r.fields['Reel'] || r.fields['Reel Link'] || r.fields['Link'] || '',
+          reel: r.fields['Greatest Hits Reel'] || r.fields['Website Reel'] || '',
         });
       }
       offset = data.offset || null;

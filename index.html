@@ -32,7 +32,7 @@
   .row-section td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-color: var(--brand); }
   .row-info-hdr td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 4px 8px; border-color: var(--brand); }
   .row-info-val td { background: var(--brand-xlight); font-size: 12px; font-weight: bold; padding: 7px 8px; text-align: center; border-color: var(--border); color: var(--brand); }
-  td.label { background: var(--brand-light); font-weight: bold; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 6px 8px; color: var(--brand); }
+  td.label { background: var(--brand-light); font-weight: bold; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 6px 8px; color: var(--brand); text-align: right; }
   td.data { background: #fff; white-space: pre-wrap; color: #1a1a1a; }
   .row-spot-h1 td { background: var(--brand-xlight); font-weight: bold; font-size: 10px; text-align: center; padding: 4px 6px; border-color: var(--border); letter-spacing: 0.04em; text-transform: uppercase; }
   .row-spot-h1 td:first-child { background: var(--brand-light); text-align: left; font-size: 10px; color: var(--brand); text-transform: uppercase; letter-spacing: 0.04em; }
@@ -42,7 +42,7 @@
   .row-spot-data td:first-child { text-align: left; font-size: 11px; font-weight: bold; white-space: pre-wrap; vertical-align: top; padding: 5px 8px; }
   .check { font-size: 14px; font-weight: bold; color: var(--accent); }
   .competition-item { margin-bottom: 2px; }
-  a { color: var(--accent); text-decoration: underline; word-break: break-all; }
+  a { color: var(--brand); text-decoration: underline; word-break: break-all; }
   .creative-item { display: block; margin-bottom: 2px; }
   .contact-link { color: var(--brand); text-decoration: underline; font-weight: bold; cursor: pointer; }
   .contact-link:hover { text-decoration: none; }
@@ -593,6 +593,8 @@ async function saveChanges() {
     if (field === 'spotTitleRow') {
       var ri = parseInt(td.getAttribute('data-spot-title-row') || '0');
       spotTitleRows[ri] = inp.value;
+    } else if (field === 'assignedTo') {
+      updates.assignedTo = inp.value;
     } else if (field.indexOf('comp-dir-') === 0) {
       // handled separately below
     } else {
