@@ -6,7 +6,7 @@
 <title>Bueno Bid Spec</title>
 <style>
   :root {
-    --brand: #1F3864;
+    --brand: #262A35;
     --brand-mid:    color-mix(in srgb, var(--brand) 70%, white);
     --brand-light:  color-mix(in srgb, var(--brand) 20%, white);
     --brand-xlight: color-mix(in srgb, var(--brand) 12%, white);
@@ -44,8 +44,8 @@
   .creative-item { display: block; margin-bottom: 2px; }
   .contact-link { color: var(--brand); text-decoration: underline; font-weight: bold; cursor: pointer; }
   .contact-link:hover { text-decoration: none; }
-  /* Creative items: name is a subtle link, title in italics, no bold/underline */
-  .creative-item .contact-link { font-weight: normal; text-decoration: none; color: inherit; }
+  /* Creative items: name is a clickable link (brand color), title in italics, no bold */
+  .creative-item .contact-link { font-weight: normal; text-decoration: none; color: var(--brand); }
   .creative-item .contact-link:hover { text-decoration: underline; }
 
   /* CONTACT POPUP */
@@ -128,7 +128,7 @@
   <button id="btn-print"  onclick="window.print()">&#128438; PDF</button>
   <label id="colour-wrap" title="Change brand colour">
     &#127912; Colour
-    <input type="color" id="brand-colour" value="#1F3864" oninput="updateColour(this.value)">
+    <input type="color" id="brand-colour" value="#262A35" oninput="updateColour(this.value)">
     <button id="btn-dismiss-colour" onclick="dismissColour(event)" title="Hide">&#10005;</button>
   </label>
   <span id="edit-status"></span>
@@ -404,6 +404,14 @@ function buildSheet(d) {
   r.push(makeRow('Any other useful info for treatment or calls?',
     '<span style="white-space:pre-wrap">' + esc(d.treatmentNotes) + '</span>', 'treatmentNotes', d.treatmentNotes));
 
+  // Footer
+  r.push('<tr><td colspan="10" style="background:#EE2F34;border-color:#EE2F34;padding:10px 16px;text-align:center;">' +
+    '<span style="color:#FFFFE5;font-size:15px;font-weight:900;letter-spacing:0.1em;font-family:Arial Black,Arial,sans-serif;">' +
+    'THANK&nbsp;Y' +
+    '<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:1.5px solid #FFFFE5;border-radius:50%;font-size:8px;font-style:italic;font-weight:400;letter-spacing:0;font-family:Georgia,serif;vertical-align:middle;margin:0 2px;line-height:1;">bueno</span>' +
+    'U!' +
+    '</span></td></tr>');
+
   return r.join('\n');
 }
 
@@ -515,20 +523,6 @@ function enterEditMode() {
       })(el, curCompId);
       if (allPeopleData.length) { buildCompDirSelect(allPeopleData); }
       else { fetch('/api/people').then(function(r){return r.json();}).then(buildCompDirSelect).catch(function(){}); }
-    } else if (field === 'assignedTo') {
-      el = document.createElement('select');
-      el.className = 'edit-input';
-      el.innerHTML = '<option value="">—</option>';
-      if (raw) { el.innerHTML += '<option value="' + escAttr(raw) + '" selected>' + escHtml(raw) + '</option>'; }
-      fetch('/api/people').then(function(r){return r.json();}).then(function(people) {
-        el.innerHTML = '<option value="">—</option>';
-        people.forEach(function(p) {
-          var opt = document.createElement('option');
-          opt.value = p.name; opt.textContent = p.name;
-          if (p.name === raw) opt.selected = true;
-          el.appendChild(opt);
-        });
-      }).catch(function(){});
     } else if (FIELD_TYPES[field] === 'textarea') {
       el = document.createElement('textarea');
       el.rows = Math.max(2, (raw.match(/\n/g)||[]).length + 2);
@@ -676,7 +670,7 @@ function loadAgenciesDatalist() {
 async function init() {
   try {
     var saved = localStorage.getItem('bueno-brand');
-    if (saved) { document.documentElement.style.setProperty('--brand', saved); document.getElementById('brand-colour').value = saved; }
+    if (saved && saved !== '#1F3864') { document.documentElement.style.setProperty('--brand', saved); document.getElementById('brand-colour').value = saved; }
     if (localStorage.getItem('bueno-colour-hidden') === '1') { document.getElementById('colour-wrap').style.display = 'none'; }
   } catch(e) {}
 

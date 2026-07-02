@@ -3,7 +3,7 @@ const BASE_ID      = 'appb2j15wK5KPtFF3';
 const PEOPLE_TABLE = 'tblX85mK7o9AMp8Uy';
 
 // Filter: Function multipleSelect contains "Director"
-const FILTER = encodeURIComponent('FIND("Director",ARRAYJOIN({Function},","))>0');
+const FILTER = encodeURIComponent('FIND("DIRECTOR",ARRAYJOIN({Function},","))>0');
 
 async function atGet(path, token) {
   const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${path}`, {
