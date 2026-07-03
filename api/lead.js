@@ -146,6 +146,12 @@ module.exports = async (req, res) => {
       fetchByIds(PEOPLE_TABLE,         f['Competition']     || [], token),
     ]);
 
+    // Fetch company names for competition directors
+    const competitionCompanyIds = [...new Set(competitionRecs.flatMap(r => r.fields['Company'] || []))];
+    const competitionCompanyRecs = competitionCompanyIds.length
+      ? await fetchByIds(COMPANIES_TABLE, competitionCompanyIds, token)
+      : [];
+
     const directorPeopleIds = [...new Set(directorLeadRecs.flatMap(r => r.fields['Director'] || []))];
     const directorPeopleRecs = directorPeopleIds.length
       ? await fetchByIds(PEOPLE_TABLE, directorPeopleIds, token)
@@ -216,11 +222,16 @@ module.exports = async (req, res) => {
       directors,
       competition:    competitionRecs.map(r => r.fields['Name']).filter(Boolean),
       competitionIds: competitionRecs.map(r => r.id),
-      competitionData: competitionRecs.map(r => ({
-        id:   r.id,
-        name: r.fields['Name'] || '',
-        reel: r.fields['Greatest Hits Reel'] || r.fields['Website Reel'] || '',
-      })),
+      competitionData: competitionRecs.map(r => {
+        const compId = (r.fields['Company'] || [])[0];
+        const compRec = compId ? competitionCompanyRecs.find(c => c.id === compId) : null;
+        return {
+          id:      r.id,
+          name:    r.fields['Name'] || '',
+          reel:    r.fields['Greatest Hits Reel'] || r.fields['Website Reel'] || '',
+          company: compRec ? (compRec.fields['Company'] || '') : '',
+        };
+      }),
 
       spotTitle:        f['Spot Title']        || '',
       spotLength:       selectNames(f['Spot Length']),

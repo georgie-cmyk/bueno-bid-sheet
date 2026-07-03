@@ -362,7 +362,7 @@ function buildSheet(d) {
     var cd = compData[ci] || null;
     var cdLabel = ci === 0 ? 'Director competition:' : '';
     var cdHtml = cd && cd.name
-      ? esc(cd.name) + (cd.reel ? ' &mdash; <a href="' + esc(cd.reel) + '" target="_blank">Reel</a>' : '')
+      ? esc(cd.name) + (cd.company ? ' / ' + esc(cd.company) : '') + (cd.reel ? ' &mdash; <a href="' + esc(cd.reel) + '" target="_blank">Reel</a>' : '')
       : '&nbsp;';
     r.push('<tr><td class="label" colspan="1">' + cdLabel + '</td>' +
       '<td class="data" colspan="9" data-field="comp-dir-' + ci + '" data-raw="' + escA(cd ? cd.id : '') + '">' + cdHtml + '</td></tr>');
