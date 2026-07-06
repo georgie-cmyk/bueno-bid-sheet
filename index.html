@@ -30,8 +30,8 @@
   table.sheet td { border: 1px solid var(--border); padding: 5px 8px; vertical-align: top; line-height: 1.4; word-wrap: break-word; }
   .row-masthead td { background: var(--brand); color: #fff; font-size: 14px; font-weight: bold; letter-spacing: 0.08em; padding: 0; text-align: left; border-color: var(--brand); }
   .row-section td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-color: var(--brand); }
-  .row-info-hdr td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 4px 8px; border-color: var(--brand); }
-  .row-info-val td { background: var(--brand-xlight); font-size: 12px; font-weight: bold; padding: 7px 8px; text-align: center; border-color: var(--brand-xlight); color: var(--brand); }
+  .row-info-hdr td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 4px 8px; border: none; }
+  .row-info-val td { background: var(--brand-xlight); font-size: 12px; font-weight: bold; padding: 7px 8px; text-align: center; border: none; color: var(--brand); }
   td.label { background: var(--brand-light); font-weight: bold; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 6px 8px; color: var(--brand); text-align: right; }
   td.data { background: #fff; white-space: pre-wrap; color: #1a1a1a; }
   .row-spot-h1 td { background: var(--brand-xlight); font-weight: bold; font-size: 10px; text-align: center; padding: 4px 6px; border-color: var(--border); letter-spacing: 0.04em; text-transform: uppercase; }
@@ -571,7 +571,8 @@ function enterEditMode() {
           select.innerHTML = '<option value="">— Select director —</option>';
           people.forEach(function(p) {
             var o = document.createElement('option');
-            o.value = p.id; o.textContent = p.name;
+            o.value = p.id;
+            o.textContent = p.name + (p.company ? ' / ' + p.company : '');
             if (p.id === currentId) o.selected = true;
             select.appendChild(o);
           });
@@ -689,7 +690,8 @@ async function saveChanges() {
     currentData.competitionIds = compIds;
     currentData.competitionData = compIds.map(function(id) {
       var p = allPeopleData.find(function(p) { return p.id === id; });
-      return p ? { id: p.id, name: p.name, reel: p.reel || '' } : { id: id, name: id, reel: '' };
+      return p ? { id: p.id, name: p.name, reel: p.reel || '', company: p.company || '' }
+               : { id: id, name: id, reel: '', company: '' };
     });
     pendingAgencyId = null;
 
