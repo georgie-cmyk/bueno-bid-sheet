@@ -7,11 +7,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
 
-  const choices = [
-    'Ashley', 'Barking Owl', 'Blinkink', 'Bryan', 'Canada',
-    'Cartel', 'Framestore', 'Golden', 'Human', 'Kaylen',
-    'ManvsMachine', 'Millie', 'Radical', 'RSA'
-  ];
+  const choices = ['Ashley', 'Bryan', 'Millie'];
 
   return res.status(200).json(choices.map(name => ({ id: name, name })));
 };
