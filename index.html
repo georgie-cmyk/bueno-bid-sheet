@@ -410,8 +410,8 @@ function buildSheet(d) {
   r.push(makeRow('Any other useful info for treatment or calls?',
     '<span style="white-space:pre-wrap">' + esc(d.treatmentNotes) + '</span>', 'treatmentNotes', d.treatmentNotes));
 
-  // Footer — actual Thank You GIF (small, same height as logo)
-  r.push('<tr><td colspan="10" style="padding:8px 0;border:none;background:var(--brand);text-align:center;">' +
+  // Footer — Thank You GIF, no background
+  r.push('<tr><td colspan="10" style="padding:8px 0;border:none;background:#fff;text-align:center;">' +
     '<img src="/thank-you.gif" alt="Thank You Bueno!" style="display:inline-block;height:56px;width:auto;">' +
     '</td></tr>');
 
