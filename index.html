@@ -31,7 +31,7 @@
   .row-masthead td { background: var(--brand); color: #fff; font-size: 14px; font-weight: bold; letter-spacing: 0.08em; padding: 0; text-align: left; border-color: var(--brand); }
   .row-section td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-color: var(--brand); }
   .row-info-hdr td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 4px 8px; border-color: var(--brand); }
-  .row-info-val td { background: var(--brand-xlight); font-size: 12px; font-weight: bold; padding: 7px 8px; text-align: center; border-color: var(--border); color: var(--brand); }
+  .row-info-val td { background: var(--brand-xlight); font-size: 12px; font-weight: bold; padding: 7px 8px; text-align: center; border-color: var(--brand-xlight); color: var(--brand); }
   td.label { background: var(--brand-light); font-weight: bold; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 6px 8px; color: var(--brand); text-align: right; }
   td.data { background: #fff; white-space: pre-wrap; color: #1a1a1a; }
   .row-spot-h1 td { background: var(--brand-xlight); font-weight: bold; font-size: 10px; text-align: center; padding: 4px 6px; border-color: var(--border); letter-spacing: 0.04em; text-transform: uppercase; }
@@ -72,6 +72,8 @@
   /* Spot cells in edit mode */
   .editing td[data-spot-type] { cursor: pointer; }
   .editing td[data-spot-type]:hover { background: var(--brand-xlight) !important; }
+  .editing td[data-spot-type="length-other"] { cursor: default; }
+  .editing td[data-spot-type="length-other"]:hover { background: #fff !important; }
   td[data-spot-type].spot-checked { background: color-mix(in srgb, var(--accent) 15%, white) !important; }
 
   /* BOTTOM BAR */
@@ -234,10 +236,11 @@ document.addEventListener('click', function(e) {
   if (!popup.contains(e.target)) closePopup();
 });
 
-function makeRow(lbl, val, fkey, raw, lspan, vspan) {
+function makeRow(lbl, val, fkey, raw, lspan, vspan, labelStyle) {
   lspan = lspan || 1; vspan = vspan || 9;
   var da = fkey ? ' data-field="' + fkey + '" data-raw="' + escA(raw || '') + '"' : '';
-  return '<tr><td class="label" colspan="' + lspan + '">' + lbl + '</td><td class="data" colspan="' + vspan + '"' + da + '>' + val + '</td></tr>';
+  var ls = labelStyle ? ' style="' + labelStyle + '"' : '';
+  return '<tr><td class="label" colspan="' + lspan + '"' + ls + '>' + lbl + '</td><td class="data" colspan="' + vspan + '"' + da + '>' + val + '</td></tr>';
 }
 function secRow(t) { return '<tr class="row-section"><td colspan="10">' + esc(t) + '</td></tr>'; }
 
@@ -249,12 +252,12 @@ function buildInitialGrid(d) {
   numRows = Math.max(numRows, NUM_SPOT_ROWS);
   for (var i = 0; i < NUM_SPOT_ROWS; i++) {
     if (d.spotGrid && d.spotGrid[i]) {
-      grid.push({ l: d.spotGrid[i].l || [], d: d.spotGrid[i].d || [] });
+      grid.push({ l: d.spotGrid[i].l || [], d: d.spotGrid[i].d || [], otherL: d.spotGrid[i].otherL || '' });
     } else if (i === 0 && !d.spotGrid) {
       // Legacy: first row inherits the global spotLength / spotDeliverables
-      grid.push({ l: d.spotLength || [], d: d.spotDeliverables || [] });
+      grid.push({ l: d.spotLength || [], d: d.spotDeliverables || [], otherL: '' });
     } else {
-      grid.push({ l: [], d: [] });
+      grid.push({ l: [], d: [], otherL: '' });
     }
   }
   return grid;
@@ -321,8 +324,8 @@ function buildSheet(d) {
 
   /* ── SPOT INFORMATION ── */
   r.push(secRow('Spot Information'));
-  r.push('<tr class="row-spot-h1"><td>Title</td><td colspan="5" style="text-align:center">Length</td><td colspan="4" style="text-align:center">Deliverables</td></tr>');
-  r.push('<tr class="row-spot-h2"><td></td>' +
+  r.push('<tr class="row-spot-h1"><td rowspan="2" style="vertical-align:middle">Title</td><td colspan="5" style="text-align:center">Length</td><td colspan="4" style="text-align:center">Deliverables</td></tr>');
+  r.push('<tr class="row-spot-h2">' +
     LENGTH_COLS.map(function(c) { return '<td>' + c + '</td>'; }).join('') +
     DELIVERABLE_COLS.map(function(c) { return '<td>' + c + '</td>'; }).join('') +
   '</tr>');
@@ -338,6 +341,11 @@ function buildSheet(d) {
     var fa = ' data-field="spotTitleRow" data-spot-title-row="' + i + '" data-raw="' + escA(title) + '"';
 
     var lc = LENGTH_COLS.map(function(col) {
+      if (col === 'Other') {
+        var otherText = rowGrid.otherL || '';
+        return '<td data-spot-row="' + i + '" data-spot-type="length-other" style="text-align:left;font-size:11px;padding:3px 5px;">' +
+               esc(otherText) + '</td>';
+      }
       var checked = rowGrid.l.indexOf(col) >= 0;
       var cls = checked ? ' spot-checked' : '';
       return '<td data-spot-row="' + i + '" data-spot-type="length" data-spot-col="' + escA(col) + '" class="' + cls + '">' +
@@ -408,7 +416,8 @@ function buildSheet(d) {
     d.specialtyReel ? '<a href="' + esc(d.specialtyReel) + '" target="_blank">' + esc(d.specialtyReel) + '</a>' : '',
     'specialtyReel', d.specialtyReel));
   r.push(makeRow('Any other useful info for treatment or calls?',
-    '<span style="white-space:pre-wrap">' + esc(d.treatmentNotes) + '</span>', 'treatmentNotes', d.treatmentNotes));
+    '<span style="white-space:pre-wrap">' + esc(d.treatmentNotes) + '</span>', 'treatmentNotes', d.treatmentNotes,
+    1, 9, 'white-space:normal'));
 
   // Footer — Thank You GIF, no background
   r.push('<tr><td colspan="10" style="padding:8px 0;border:none;background:#fff;text-align:center;">' +
@@ -441,11 +450,34 @@ function enterEditMode() {
   spotGridEdit = {};
   var grid = buildInitialGrid(currentData);
   for (var i = 0; i < NUM_SPOT_ROWS; i++) {
-    spotGridEdit[i] = { l: (grid[i] || {l:[]}).l.slice(), d: (grid[i] || {d:[]}).d.slice() };
+    spotGridEdit[i] = {
+      l:      (grid[i] || {l:[]}).l.slice(),
+      d:      (grid[i] || {d:[]}).d.slice(),
+      otherL: (grid[i] || {otherL:''}).otherL || '',
+    };
   }
 
-  // Wire up spot cells as per-row toggles
+  // Wire up spot cells as per-row toggles (or text inputs for length-other)
   document.querySelectorAll('td[data-spot-type]').forEach(function(td) {
+    var spotType = td.getAttribute('data-spot-type');
+    if (spotType === 'length-other') {
+      // Replace with a free-text input
+      var ri = parseInt(td.getAttribute('data-spot-row'));
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'edit-input';
+      inp.style.width = '100%';
+      inp.style.fontSize = '11px';
+      inp.placeholder = 'e.g. 2:30';
+      inp.value = spotGridEdit[ri].otherL || '';
+      inp.addEventListener('input', (function(rowIndex) {
+        return function() { spotGridEdit[rowIndex].otherL = this.value; };
+      })(ri));
+      td.innerHTML = '';
+      td.style.textAlign = 'left';
+      td.appendChild(inp);
+      return;
+    }
     td.onclick = function() {
       var ri   = parseInt(this.getAttribute('data-spot-row'));
       var type = this.getAttribute('data-spot-type'); // 'length' | 'del'
@@ -623,8 +655,8 @@ async function saveChanges() {
   // Build spotGrid array from per-row edits
   var gridArr = [];
   for (var i = 0; i < NUM_SPOT_ROWS; i++) {
-    var row = spotGridEdit[i] || { l: [], d: [] };
-    gridArr.push({ l: row.l, d: row.d });
+    var row = spotGridEdit[i] || { l: [], d: [], otherL: '' };
+    gridArr.push({ l: row.l, d: row.d, otherL: row.otherL || '' });
   }
   updates.spotGrid = gridArr;
 

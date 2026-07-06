@@ -1,6 +1,11 @@
 const BASE_ID      = 'appb2j15wK5KPtFF3';
 const COMPANIES_TABLE = 'tbla3CGnVGsBQXPhi';
 
+// Filter: Type contains Agency, Brand, or Client Direct
+const TYPE_FILTER = encodeURIComponent(
+  'OR(FIND("Agency",ARRAYJOIN({Type},",")),FIND("Brand",ARRAYJOIN({Type},",")),FIND("Client Direct",ARRAYJOIN({Type},",")))'
+);
+
 async function atGet(path, token) {
   const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${path}`, {
     headers: { Authorization: `Bearer ${token}` }
@@ -25,6 +30,7 @@ module.exports = async (req, res) => {
 
     do {
       const params = 'fields[]=Company&fields[]=Full+Address&fields[]=Main+Office+Number&pageSize=100' +
+        '&filterByFormula=' + TYPE_FILTER +
         (offset ? '&offset=' + encodeURIComponent(offset) : '');
       const data = await atGet(`${COMPANIES_TABLE}?${params}`, token);
 
