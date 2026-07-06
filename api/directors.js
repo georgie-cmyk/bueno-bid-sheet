@@ -4,7 +4,22 @@ const BASE_ID         = 'appb2j15wK5KPtFF3';
 const PEOPLE_TABLE    = 'tblX85mK7o9AMp8Uy';
 const COMPANIES_TABLE = 'tbla3CGnVGsBQXPhi';
 
-const FILTER = encodeURIComponent('FIND("DIRECTOR",ARRAYJOIN({Function},","))>0');
+// Roster directors only: Function=DIRECTOR + Status is one of the active roster statuses
+const FILTER = encodeURIComponent(
+  'AND(' +
+    'FIND("DIRECTOR",ARRAYJOIN({Function},",")),' +
+    'OR(' +
+      '{Status}="roster",' +
+      '{Status}="priority roster",' +
+      '{Status}="special projects",' +
+      '{Status}="joining soon",' +
+      '{Status}="leaving soon",' +
+      '{Status}="pending visa",' +
+      '{Status}="maternity leave",' +
+      '{Status}="not on website"' +
+    ')' +
+  ')'
+);
 
 async function atGet(path, token) {
   const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${path}`, {
@@ -29,7 +44,7 @@ module.exports = async (req, res) => {
     const people = [];
     let offset = null;
     do {
-      const params = 'fields[]=Name&fields[]=Greatest+Hits+Reel&fields[]=Website+Reel&fields[]=Company' +
+      const params = 'fields[]=Name&fields[]=Greatest+Hits+Reel&fields[]=Website+Reel&fields[]=Company&fields[]=Status' +
         '&filterByFormula=' + FILTER +
         '&pageSize=100' +
         (offset ? '&offset=' + encodeURIComponent(offset) : '');
