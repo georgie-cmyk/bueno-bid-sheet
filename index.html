@@ -663,6 +663,7 @@ async function saveChanges() {
 
   try {
     var id = new URLSearchParams(window.location.search).get('id');
+    if (new URLSearchParams(window.location.search).get('director')) { delete updates.directorOverride; delete updates.competitionIds; }
     var res = await fetch('/api/lead?id=' + encodeURIComponent(id), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -754,7 +755,8 @@ async function init() {
   loadStaff();
 
   try {
-    var res = await fetch('/api/lead?id=' + encodeURIComponent(id));
+    var director = new URLSearchParams(window.location.search).get('director');
+    var res = await fetch('/api/lead?id=' + encodeURIComponent(id) + (director ? '&director=' + encodeURIComponent(director) : ''));
     if (!res.ok) { var b = await res.json().catch(function(){return{};}); throw new Error(b.error || 'HTTP ' + res.status); }
     var data = await res.json();
     document.getElementById('sheet-body').innerHTML = buildSheet(data);
