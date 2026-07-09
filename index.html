@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;900&family=Pacifico&display=swap" rel="stylesheet">
 <style>
   :root {
-    --brand:        #262A35;
+    --brand:        #1F2D5C;
     --accent:       #EE2F34;
     --brand-mid:    color-mix(in srgb, var(--brand) 68%, white);
     --brand-light:  color-mix(in srgb, var(--brand) 12%, white);
@@ -30,15 +30,15 @@
   table.sheet col.c-narrow { width: 7.5%; }
   table.sheet td { border: 1px solid var(--border); padding: 5px 8px; vertical-align: top; line-height: 1.4; word-wrap: break-word; }
   .row-masthead td { background: #fff; color: var(--brand); font-size: 14px; font-weight: bold; letter-spacing: 0.08em; padding: 0; text-align: left; border-color: #fff; }
-  .row-section td { background: #fff; color: var(--brand); font-weight: 700; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 9px 10px; border: none; border-top: 2px solid var(--accent); border-bottom: 1px solid #e0e0e0; }
-  .row-info-hdr td { background: var(--brand); color: #8C8F9C; font-weight: 700; font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; text-align: center; padding: 6px 8px 3px; border: none; }
+  .row-section td { background: var(--brand); color: #FFFFE5; font-weight: 700; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; padding: 8px 12px; border: none; }
+  .row-info-hdr td { background: var(--brand); color: #8A97C6; font-weight: 700; font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; text-align: center; padding: 6px 8px 3px; border: none; }
   .row-info-val td { background: var(--brand); font-size: 12px; font-weight: 400; padding: 3px 8px 8px; text-align: center; border: none; color: #FFFFE5; }
-  td.label { background: #F7F7EE; font-weight: 600; font-size: 9px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 7px 10px; color: #8C8F9C; text-align: right; }
+  td.label { background: #F7F7EE; font-weight: 600; font-size: 9px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 7px 10px; color: #8A97C6; text-align: right; }
   td.data { background: #fff; white-space: pre-wrap; color: #1a1a1a; }
   .row-spot-h1 td { background: var(--brand); color: #FFFFE5; font-weight: 600; font-size: 9px; text-align: center; padding: 5px 6px; border-color: #1a1d26; letter-spacing: 0.06em; text-transform: uppercase; }
   .row-spot-h1 td:first-child { background: var(--brand); text-align: left; font-size: 10px; color: #FFFFE5; text-transform: uppercase; letter-spacing: 0.04em; }
-  .row-spot-h2 td { background: #3D4255; color: #FFFFE5; font-size: 9px; font-weight: 600; text-align: center; padding: 3px 4px; border-color: #1a1d26; letter-spacing: 0.03em; }
-  .row-spot-h2 td:first-child { background: #3D4255; }
+  .row-spot-h2 td { background: #33417A; color: #FFFFE5; font-size: 9px; font-weight: 600; text-align: center; padding: 3px 4px; border-color: #1a1d26; letter-spacing: 0.03em; }
+  .row-spot-h2 td:first-child { background: #33417A; }
   .row-spot-data td { background: #fff; text-align: center; font-size: 12px; padding: 4px; border-color: var(--border); vertical-align: middle; }
   .row-spot-data td:first-child { text-align: left; font-size: 11px; font-weight: 700; white-space: pre-wrap; vertical-align: top; padding: 5px 8px; background: #F7F7EE; }
   .check { font-size: 14px; font-weight: bold; color: var(--accent); }
@@ -67,8 +67,8 @@
 
   /* EDIT MODE */
   .edit-input { width: 100%; font-family: Arial, Helvetica, sans-serif; font-size: 12px; padding: 2px 4px; border: 1px solid var(--brand); border-radius: 2px; background: #fff; resize: vertical; min-height: 24px; }
-  .edit-input:focus { outline: 2px solid var(--accent); }
-  .editing td[data-field] { background: #fff !important; outline: 1.5px inset rgba(238,47,52,0.25); }
+  .edit-input:focus { outline: 2px solid var(--brand); }
+  .editing td[data-field] { background: #fff !important; outline: 1.5px inset rgba(31,45,92,0.25); }
 
   /* Spot cells in edit mode */
   .editing td[data-spot-type] { cursor: pointer; }
@@ -133,7 +133,7 @@
   <button id="btn-print"  onclick="window.print()">&#128438; PDF</button>
   <label id="colour-wrap" title="Change brand colour">
     &#127912; Colour
-    <input type="color" id="brand-colour" value="#262A35" oninput="updateColour(this.value)">
+    <input type="color" id="brand-colour" value="#1F2D5C" oninput="updateColour(this.value)">
     <button id="btn-dismiss-colour" onclick="dismissColour(event)" title="Hide">&#10005;</button>
   </label>
   <span id="edit-status"></span>
@@ -188,11 +188,11 @@ var NUM_SPOT_ROWS = 5;
 function fmtDate(iso) {
   if (!iso) return '';
   var p = iso.split('-');
-  return parseInt(p[1]) + '.' + p[2] + '.' + p[0].slice(2);
+  return p[1] + '/' + p[2];
 }
 function fmtDateLong(iso) {
   if (!iso) return '';
-  try { return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {month:'numeric',day:'numeric',year:'2-digit'}); }
+  try { var _p = iso.split('-'); return _p[1] + '/' + _p[2]; }
   catch(e) { return iso; }
 }
 function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -271,11 +271,11 @@ function buildSheet(d) {
   var r = [];
 
   r.push('<tr class="row-masthead"><td colspan="10" style="padding:0;">' +
-    '<div style="display:flex;align-items:baseline;gap:14px;background:#fff;padding:16px 16px 12px;border-bottom:1px solid #e8e8e2;">' +
+    '<div style="display:flex;align-items:center;gap:14px;background:#fff;padding:14px 16px 12px;border-bottom:1px solid #e8e8e2;">' +
     '' +
-    '<span style="font-family:Pacifico,cursive;font-size:32px;color:var(--accent);line-height:.9;">bueno</span>' +
+    '<img src="/bueno-wordmark.png" alt="bueno" style="height:40px;width:auto;display:block;">' +
     '<div style="display:flex;flex-direction:column;gap:2px;">' +
-    '<span style="font-size:9px;font-weight:700;letter-spacing:0.26em;text-transform:uppercase;color:#8C8F9C;white-space:nowrap;">BUENO BID SPECS SHEET</span>' +
+    '<span style="font-size:9px;font-weight:700;letter-spacing:0.26em;text-transform:uppercase;color:#8A97C6;white-space:nowrap;">BUENO BID SPECS SHEET</span>' +
     '</div>' +
     '</div></td></tr>');
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
