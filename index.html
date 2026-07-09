@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bueno Bid Spec</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;900&family=Pacifico&display=swap" rel="stylesheet">
 <style>
   :root {
     --brand:        #262A35;
@@ -11,10 +12,10 @@
     --brand-mid:    color-mix(in srgb, var(--brand) 68%, white);
     --brand-light:  color-mix(in srgb, var(--brand) 12%, white);
     --brand-xlight: color-mix(in srgb, var(--brand) 5%, white);
-    --border:       #c4c8cc;
+    --border:       #e8e8e8;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; background: #f0f0f0; color: #000; }
+  body { font-family: 'Montserrat', Arial, Helvetica, sans-serif; font-size: 12px; background: #f0f0f0; color: #000; }
   #loading, #error {
     display: flex; align-items: center; justify-content: center;
     height: 100vh; font-size: 14px; color: #555; flex-direction: column; gap: 12px;
@@ -28,18 +29,18 @@
   table.sheet col.c-title  { width: 22%; }
   table.sheet col.c-narrow { width: 7.5%; }
   table.sheet td { border: 1px solid var(--border); padding: 5px 8px; vertical-align: top; line-height: 1.4; word-wrap: break-word; }
-  .row-masthead td { background: var(--brand); color: #fff; font-size: 14px; font-weight: bold; letter-spacing: 0.08em; padding: 0; text-align: left; border-color: var(--brand); }
-  .row-section td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-color: var(--brand); }
-  .row-info-hdr td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 4px 8px; border: none; }
-  .row-info-val td { background: var(--brand-xlight); font-size: 12px; font-weight: bold; padding: 7px 8px; text-align: center; border: none; color: var(--brand); }
-  td.label { background: var(--brand-light); font-weight: bold; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 6px 8px; color: var(--brand); text-align: right; }
+  .row-masthead td { background: #fff; color: var(--brand); font-size: 14px; font-weight: bold; letter-spacing: 0.08em; padding: 0; text-align: left; border-color: #fff; }
+  .row-section td { background: #fff; color: var(--brand); font-weight: 700; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 9px 10px; border: none; border-top: 2px solid var(--accent); border-bottom: 1px solid #e0e0e0; }
+  .row-info-hdr td { background: var(--brand); color: #8C8F9C; font-weight: 700; font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; text-align: center; padding: 6px 8px 3px; border: none; }
+  .row-info-val td { background: var(--brand); font-size: 12px; font-weight: 400; padding: 3px 8px 8px; text-align: center; border: none; color: #FFFFE5; }
+  td.label { background: #F7F7EE; font-weight: 600; font-size: 9px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 7px 10px; color: #8C8F9C; text-align: right; }
   td.data { background: #fff; white-space: pre-wrap; color: #1a1a1a; }
-  .row-spot-h1 td { background: var(--brand-xlight); font-weight: bold; font-size: 10px; text-align: center; padding: 4px 6px; border-color: var(--border); letter-spacing: 0.04em; text-transform: uppercase; }
-  .row-spot-h1 td:first-child { background: var(--brand-light); text-align: left; font-size: 10px; color: var(--brand); text-transform: uppercase; letter-spacing: 0.04em; }
-  .row-spot-h2 td { background: var(--brand-xlight); font-size: 9px; font-weight: bold; text-align: center; padding: 3px 4px; border-color: var(--border); letter-spacing: 0.03em; }
-  .row-spot-h2 td:first-child { background: var(--brand-light); }
+  .row-spot-h1 td { background: var(--brand); color: #FFFFE5; font-weight: 600; font-size: 9px; text-align: center; padding: 5px 6px; border-color: #1a1d26; letter-spacing: 0.06em; text-transform: uppercase; }
+  .row-spot-h1 td:first-child { background: var(--brand); text-align: left; font-size: 10px; color: #FFFFE5; text-transform: uppercase; letter-spacing: 0.04em; }
+  .row-spot-h2 td { background: #3D4255; color: #FFFFE5; font-size: 9px; font-weight: 600; text-align: center; padding: 3px 4px; border-color: #1a1d26; letter-spacing: 0.03em; }
+  .row-spot-h2 td:first-child { background: #3D4255; }
   .row-spot-data td { background: #fff; text-align: center; font-size: 12px; padding: 4px; border-color: var(--border); vertical-align: middle; }
-  .row-spot-data td:first-child { text-align: left; font-size: 11px; font-weight: bold; white-space: pre-wrap; vertical-align: top; padding: 5px 8px; }
+  .row-spot-data td:first-child { text-align: left; font-size: 11px; font-weight: 700; white-space: pre-wrap; vertical-align: top; padding: 5px 8px; background: #F7F7EE; }
   .check { font-size: 14px; font-weight: bold; color: var(--accent); }
   .competition-item { margin-bottom: 2px; }
   a { color: var(--brand); text-decoration: underline; word-break: break-all; }
@@ -270,11 +271,11 @@ function buildSheet(d) {
   var r = [];
 
   r.push('<tr class="row-masthead"><td colspan="10" style="padding:0;">' +
-    '<div style="display:flex;align-items:center;gap:0;background:var(--brand);">' +
-    '<div style="width:4px;background:var(--accent);align-self:stretch;flex-shrink:0;"></div>' +
-    '<img src="/bueno-la.png" alt="Bueno" style="height:56px;width:56px;object-fit:contain;flex-shrink:0;margin:0 14px;" onerror="this.style.display=\'none\'">' +
+    '<div style="display:flex;align-items:baseline;gap:14px;background:#fff;padding:16px 16px 12px;border-bottom:1px solid #e8e8e2;">' +
+    '' +
+    '<span style="font-family:Pacifico,cursive;font-size:32px;color:var(--accent);line-height:.9;">bueno</span>' +
     '<div style="display:flex;flex-direction:column;gap:2px;">' +
-    '<span style="font-size:16px;font-weight:900;letter-spacing:0.12em;color:#fff;white-space:nowrap;line-height:1;">BUENO BID SPECS SHEET</span>' +
+    '<span style="font-size:9px;font-weight:700;letter-spacing:0.26em;text-transform:uppercase;color:#8C8F9C;white-space:nowrap;">BUENO BID SPECS SHEET</span>' +
     '</div>' +
     '</div></td></tr>');
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
