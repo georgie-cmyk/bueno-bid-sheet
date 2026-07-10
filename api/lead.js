@@ -199,7 +199,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       id: lead.id,
       client:      f['Client'] || '',
-      date:        f['Bid Sheet Date'] || f['Date'] || '',
+      date:        f['Bid Sheet Date'] || new Date().toISOString().slice(0,10),
       assignedTo:  selectNames(f['Assigned To'])[0] || '',
 
       agencyId:      agencyRecs[0]?.id || '',
