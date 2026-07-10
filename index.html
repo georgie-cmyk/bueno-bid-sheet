@@ -4,18 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bueno Bid Spec</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;900&family=Pacifico&display=swap" rel="stylesheet">
 <style>
   :root {
-    --brand:        #1F2D5C;
+    --brand:        #262A35;
     --accent:       #EE2F34;
     --brand-mid:    color-mix(in srgb, var(--brand) 68%, white);
     --brand-light:  color-mix(in srgb, var(--brand) 12%, white);
     --brand-xlight: color-mix(in srgb, var(--brand) 5%, white);
-    --border:       #e8e8e8;
+    --border:       #c4c8cc;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Montserrat', Arial, Helvetica, sans-serif; font-size: 12px; background: #f0f0f0; color: #000; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; background: #f0f0f0; color: #000; }
   #loading, #error {
     display: flex; align-items: center; justify-content: center;
     height: 100vh; font-size: 14px; color: #555; flex-direction: column; gap: 12px;
@@ -29,18 +28,18 @@
   table.sheet col.c-title  { width: 22%; }
   table.sheet col.c-narrow { width: 7.5%; }
   table.sheet td { border: 1px solid var(--border); padding: 5px 8px; vertical-align: top; line-height: 1.4; word-wrap: break-word; }
-  .row-masthead td { background: #fff; color: var(--brand); font-size: 14px; font-weight: bold; letter-spacing: 0.08em; padding: 0; text-align: left; border-color: #fff; }
-  .row-section td { background: var(--brand); color: #FFFFE5; font-weight: 700; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; padding: 8px 12px; border: none; }
-  .row-info-hdr td { background: var(--brand); color: #8A97C6; font-weight: 700; font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; text-align: center; padding: 6px 8px 3px; border: none; }
-  .row-info-val td { background: var(--brand); font-size: 12px; font-weight: 400; padding: 3px 8px 8px; text-align: center; border: none; color: #FFFFE5; }
-  td.label { background: #F7F7EE; font-weight: 600; font-size: 9px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 7px 10px; color: #8A97C6; text-align: right; }
+  .row-masthead td { background: var(--brand); color: #fff; font-size: 14px; font-weight: bold; letter-spacing: 0.08em; padding: 0; text-align: left; border-color: var(--brand); }
+  .row-section td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-color: var(--brand); }
+  .row-info-hdr td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 4px 8px; border: none; }
+  .row-info-val td { background: #fff; font-size: 12px; font-weight: bold; padding: 7px 8px; text-align: center; border: none; color: var(--brand); }
+  td.label { background: var(--brand-light); font-weight: bold; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 6px 8px; color: var(--brand); text-align: right; }
   td.data { background: #fff; white-space: pre-wrap; color: #1a1a1a; }
-  .row-spot-h1 td { background: var(--brand); color: #FFFFE5; font-weight: 600; font-size: 9px; text-align: center; padding: 5px 6px; border-color: #1a1d26; letter-spacing: 0.06em; text-transform: uppercase; }
-  .row-spot-h1 td:first-child { background: var(--brand); text-align: left; font-size: 10px; color: #FFFFE5; text-transform: uppercase; letter-spacing: 0.04em; }
-  .row-spot-h2 td { background: #33417A; color: #FFFFE5; font-size: 9px; font-weight: 600; text-align: center; padding: 3px 4px; border-color: #1a1d26; letter-spacing: 0.03em; }
-  .row-spot-h2 td:first-child { background: #33417A; }
+  .row-spot-h1 td { background: var(--brand-xlight); font-weight: bold; font-size: 10px; text-align: center; padding: 4px 6px; border-color: var(--border); letter-spacing: 0.04em; text-transform: uppercase; }
+  .row-spot-h1 td:first-child { background: var(--brand-light); text-align: left; font-size: 10px; color: var(--brand); text-transform: uppercase; letter-spacing: 0.04em; }
+  .row-spot-h2 td { background: var(--brand-xlight); font-size: 9px; font-weight: bold; text-align: center; padding: 3px 4px; border-color: var(--border); letter-spacing: 0.03em; }
+  .row-spot-h2 td:first-child { background: var(--brand-light); }
   .row-spot-data td { background: #fff; text-align: center; font-size: 12px; padding: 4px; border-color: var(--border); vertical-align: middle; }
-  .row-spot-data td:first-child { text-align: left; font-size: 11px; font-weight: 700; white-space: pre-wrap; vertical-align: top; padding: 5px 8px; background: #F7F7EE; }
+  .row-spot-data td:first-child { text-align: left; font-size: 11px; font-weight: bold; white-space: pre-wrap; vertical-align: top; padding: 5px 8px; }
   .check { font-size: 14px; font-weight: bold; color: var(--accent); }
   .competition-item { margin-bottom: 2px; }
   a { color: var(--brand); text-decoration: underline; word-break: break-all; }
@@ -67,8 +66,8 @@
 
   /* EDIT MODE */
   .edit-input { width: 100%; font-family: Arial, Helvetica, sans-serif; font-size: 12px; padding: 2px 4px; border: 1px solid var(--brand); border-radius: 2px; background: #fff; resize: vertical; min-height: 24px; }
-  .edit-input:focus { outline: 2px solid var(--brand); }
-  .editing td[data-field] { background: #fff !important; outline: 1.5px inset rgba(31,45,92,0.25); }
+  .edit-input:focus { outline: 2px solid var(--accent); }
+  .editing td[data-field] { background: #fff !important; outline: 1.5px inset rgba(238,47,52,0.25); }
 
   /* Spot cells in edit mode */
   .editing td[data-spot-type] { cursor: pointer; }
@@ -133,7 +132,7 @@
   <button id="btn-print"  onclick="window.print()">&#128438; PDF</button>
   <label id="colour-wrap" title="Change brand colour">
     &#127912; Colour
-    <input type="color" id="brand-colour" value="#1F2D5C" oninput="updateColour(this.value)">
+    <input type="color" id="brand-colour" value="#262A35" oninput="updateColour(this.value)">
     <button id="btn-dismiss-colour" onclick="dismissColour(event)" title="Hide">&#10005;</button>
   </label>
   <span id="edit-status"></span>
@@ -188,11 +187,11 @@ var NUM_SPOT_ROWS = 5;
 function fmtDate(iso) {
   if (!iso) return '';
   var p = iso.split('-');
-  return p[1] + '/' + p[2];
+  return parseInt(p[1]) + '.' + p[2];
 }
 function fmtDateLong(iso) {
   if (!iso) return '';
-  try { var _p = iso.split('-'); return _p[1] + '/' + _p[2]; }
+  try { return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {month:'numeric',day:'numeric'}); }
   catch(e) { return iso; }
 }
 function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -271,11 +270,10 @@ function buildSheet(d) {
   var r = [];
 
   r.push('<tr class="row-masthead"><td colspan="10" style="padding:0;">' +
-    '<div style="display:flex;align-items:center;gap:14px;background:#fff;padding:14px 16px 12px;border-bottom:1px solid #e8e8e2;">' +
-    '' +
-    '<img src="/bueno-wordmark.png" alt="bueno" style="height:40px;width:auto;display:block;">' +
+    '<div style="display:flex;align-items:center;gap:0;background:var(--brand);">' +
+    '<img src="/bueno-la.png" alt="Bueno" style="height:56px;width:56px;object-fit:contain;flex-shrink:0;margin:0 14px;" onerror="this.style.display=\'none\'">' +
     '<div style="display:flex;flex-direction:column;gap:2px;">' +
-    '<span style="font-size:9px;font-weight:700;letter-spacing:0.26em;text-transform:uppercase;color:#8A97C6;white-space:nowrap;">BUENO BID SPECS SHEET</span>' +
+    '<span style="font-size:16px;font-weight:900;letter-spacing:0.12em;color:#fff;white-space:nowrap;line-height:1;">BUENO BID SPECS SHEET</span>' +
     '</div>' +
     '</div></td></tr>');
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
@@ -416,6 +414,15 @@ function buildSheet(d) {
   r.push(makeRow('Specialty reel created?:',
     d.specialtyReel ? '<a href="' + esc(d.specialtyReel) + '" target="_blank">' + esc(d.specialtyReel) + '</a>' : '',
     'specialtyReel', d.specialtyReel));
+  var bidSheetsVal = '';
+  if (d.bidSheets) {
+    var bsArr = Array.isArray(d.bidSheets) ? d.bidSheets : [d.bidSheets];
+    bidSheetsVal = bsArr.map(function(bs) {
+      var s = String(bs).trim();
+      return s.match(/^https?:\/\//) ? '<a href="' + esc(s) + '" target="_blank">' + esc(s) + '</a>' : esc(s);
+    }).join('<br>');
+  }
+  r.push(makeRow('Bid Sheets:', bidSheetsVal || '', null, ''));
   r.push(makeRow('Any other useful info for treatment or calls?',
     '<span style="white-space:pre-wrap">' + esc(d.treatmentNotes) + '</span>', 'treatmentNotes', d.treatmentNotes,
     1, 9, 'white-space:normal'));
@@ -664,7 +671,6 @@ async function saveChanges() {
 
   try {
     var id = new URLSearchParams(window.location.search).get('id');
-    if (new URLSearchParams(window.location.search).get('director')) { delete updates.directorOverride; delete updates.competitionIds; }
     var res = await fetch('/api/lead?id=' + encodeURIComponent(id), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -740,7 +746,7 @@ async function init() {
   try {
     var saved = localStorage.getItem('bueno-brand');
     if (saved && saved !== '#1F3864') { document.documentElement.style.setProperty('--brand', saved); document.getElementById('brand-colour').value = saved; }
-    try { localStorage.removeItem('bueno-colour-hidden'); } catch(e) {}
+    if (localStorage.getItem('bueno-colour-hidden') === '1') { document.getElementById('colour-wrap').style.display = 'none'; }
   } catch(e) {}
 
   var id = new URLSearchParams(window.location.search).get('id');
@@ -756,8 +762,7 @@ async function init() {
   loadStaff();
 
   try {
-    var director = new URLSearchParams(window.location.search).get('director');
-    var res = await fetch('/api/lead?id=' + encodeURIComponent(id) + (director ? '&director=' + encodeURIComponent(director) : ''));
+    var res = await fetch('/api/lead?id=' + encodeURIComponent(id));
     if (!res.ok) { var b = await res.json().catch(function(){return{};}); throw new Error(b.error || 'HTTP ' + res.status); }
     var data = await res.json();
     document.getElementById('sheet-body').innerHTML = buildSheet(data);

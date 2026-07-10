@@ -138,9 +138,6 @@ module.exports = async (req, res) => {
     const lead = await atGet(`${LEADS_TABLE}/${qid}`, token);
     const f = lead.fields;
 
-    const directorParam = (req.query && req.query.director) || '';
-    const directorValid = /^rec[A-Za-z0-9]{14}$/.test(directorParam);
-
     const [agencyRecs, producerRecs, creativeRecs, directorLeadRecs, competitionRecs] = await Promise.all([
       fetchByIds(COMPANIES_TABLE,      f['Agency']          || [], token),
       fetchByIds(PEOPLE_TABLE,         f['Agency Producer'] || [], token),
@@ -175,26 +172,6 @@ module.exports = async (req, res) => {
       producerRecs.map(r => r.fields['Email']).filter(Boolean).join(', ');
 
     const { spotGrid, spotNotes } = parseSpotNotes(f['Spot Notes'] || '');
-
-    let outDirectorOverride = f['Director Override'] || '';
-    let outCompetition = competitionRecs.map(r => r.fields['Name']).filter(Boolean);
-    let outCompetitionIds = competitionRecs.map(r => r.id);
-    let outCompetitionData = competitionRecs.map(r => { const compId=(r.fields['Company']||[])[0]; const compRec=compId?competitionCompanyRecs.find(c=>c.id===compId):null; return { id:r.id, name:r.fields['Name']||'', reel:r.fields['Greatest Hits Reel']||r.fields['Website Reel']||'', company: compRec?(compRec.fields['Company']||''):'' }; });
-    if (directorValid) {
-      const jobDirIds = [...new Set([...(f['Bidding']||[]), ...(f['Boards In']||[])])];
-      const jobDirRecs = await fetchByIds(PEOPLE_TABLE, jobDirIds, token);
-      const jdCompanyIds = [...new Set(jobDirRecs.flatMap(r => r.fields['Company']||[]))];
-      const jdCompanyRecs = jdCompanyIds.length ? await fetchByIds(COMPANIES_TABLE, jdCompanyIds, token) : [];
-      const companyNameOf = (rec) => { const cid=(rec.fields['Company']||[])[0]; const c=cid?jdCompanyRecs.find(x=>x.id===cid):null; return c?(c.fields['Company']||''):''; };
-      let me = jobDirRecs.find(r => r.id === directorParam);
-      if (!me) { me = (await fetchByIds(PEOPLE_TABLE, [directorParam], token))[0]; }
-      if (me) { const meCompany = companyNameOf(me); outDirectorOverride = (me.fields['Name']||'') + (meCompany ? ' / ' + meCompany : ''); }
-      const others = jobDirRecs.filter(r => r.id !== directorParam);
-      outCompetition = others.map(r => r.fields['Name']).filter(Boolean);
-      outCompetitionIds = others.map(r => r.id);
-      outCompetitionData = others.map(r => ({ id:r.id, name:r.fields['Name']||'', reel:r.fields['Greatest Hits Reel']||r.fields['Website Reel']||'', company: companyNameOf(r) }));
-    }
-
 
     return res.status(200).json({
       id: lead.id,
@@ -243,9 +220,18 @@ module.exports = async (req, res) => {
       })),
 
       directors,
-      competition:    outCompetition,
-      competitionIds: outCompetitionIds,
-      competitionData: outCompetitionData,
+      competition:    competitionRecs.map(r => r.fields['Name']).filter(Boolean),
+      competitionIds: competitionRecs.map(r => r.id),
+      competitionData: competitionRecs.map(r => {
+        const compId = (r.fields['Company'] || [])[0];
+        const compRec = compId ? competitionCompanyRecs.find(c => c.id === compId) : null;
+        return {
+          id:      r.id,
+          name:    r.fields['Name'] || '',
+          reel:    r.fields['Greatest Hits Reel'] || r.fields['Website Reel'] || '',
+          company: compRec ? (compRec.fields['Company'] || '') : '',
+        };
+      }),
 
       spotTitle:        f['Spot Title']        || '',
       spotLength:       selectNames(f['Spot Length']),
@@ -268,7 +254,8 @@ module.exports = async (req, res) => {
       specialtyReel:  f['Specialty Reel Created'] || '',
       treatmentNotes: f['Treatment Notes']|| '',
       link:             f['Link']             || '',
-      directorOverride: outDirectorOverride,
+      directorOverride: f['Director Override'] || '',
+      bidSheets:        f['Bid Sheets']        || '',
       creativeAttachments: (f['Creative'] || []).map(function(a) {
         return {
           id:       a.id,
