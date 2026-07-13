@@ -279,7 +279,6 @@ function buildSheet(d) {
   var grid = buildInitialGrid(d);
   var r = [];
 
-  r.push('<tr><td colspan="10" style="padding:0;border:none;height:6px;background:var(--accent);"></td></tr>');
   r.push('<tr class="row-masthead"><td colspan="10" style="padding:0;">' +
     '<div class="mast-wrap">' +
     '<img src="/bueno-la.png" alt="bueno LA" style="height:56px;width:56px;object-fit:contain;flex-shrink:0;">' +
@@ -430,7 +429,6 @@ function buildSheet(d) {
   r.push('<tr><td colspan="10" style="padding:16px 0;border:none;background:var(--cream);text-align:center;">' +
     '<a href="https://wearebueno.com" target="_blank"><img src="/thank-you.gif" alt="Thank You Bueno!" style="display:inline-block;height:60px;width:auto;"></a>' +
     '</td></tr>');
-  r.push('<tr><td colspan="10" style="padding:0;border:none;height:6px;background:var(--accent);"></td></tr>');
 
   return r.join('\n');
 }
