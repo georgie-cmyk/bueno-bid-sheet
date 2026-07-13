@@ -11,7 +11,7 @@
     --brand-mid:    color-mix(in srgb, var(--brand) 68%, white);
     --brand-light:  color-mix(in srgb, var(--brand) 12%, white);
     --brand-xlight: color-mix(in srgb, var(--brand) 5%, white);
-    --border:       #c4c8cc;
+    --border:       #e0e0d8;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; background: #f0f0f0; color: #000; }
@@ -29,15 +29,15 @@
   table.sheet col.c-narrow { width: 7.5%; }
   table.sheet td { border: 1px solid var(--border); padding: 5px 8px; vertical-align: top; line-height: 1.4; word-wrap: break-word; }
   .row-masthead td { background: var(--brand); color: #fff; font-size: 14px; font-weight: bold; letter-spacing: 0.08em; padding: 0; text-align: left; border-color: var(--brand); }
-  .row-section td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-color: var(--brand); }
-  .row-info-hdr td { background: var(--brand); color: #fff; font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 4px 8px; border: none; }
+  .row-section td { background: #f5f5f2; color: #262A35; font-weight: bold; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 10px; border-top: 1px solid #d8d8d0; border-bottom: 1px solid #e8e8e2; border-left: none; border-right: none; }
+  .row-info-hdr td { background: #fff; color: #b0b0a8; font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; padding: 4px 8px; border: none; }
   .row-info-val td { background: #fff; font-size: 12px; font-weight: bold; padding: 7px 8px; text-align: center; border: none; color: var(--brand); }
-  td.label { background: var(--brand-light); font-weight: bold; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 6px 8px; color: var(--brand); text-align: right; }
+  td.label { background: #fafaf8; font-weight: bold; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: top; padding: 6px 8px; color: #909088; text-align: right; }
   td.data { background: #fff; white-space: pre-wrap; color: #1a1a1a; }
-  .row-spot-h1 td { background: var(--brand-xlight); font-weight: bold; font-size: 10px; text-align: center; padding: 4px 6px; border-color: var(--border); letter-spacing: 0.04em; text-transform: uppercase; }
-  .row-spot-h1 td:first-child { background: var(--brand-light); text-align: left; font-size: 10px; color: var(--brand); text-transform: uppercase; letter-spacing: 0.04em; }
-  .row-spot-h2 td { background: var(--brand-xlight); font-size: 9px; font-weight: bold; text-align: center; padding: 3px 4px; border-color: var(--border); letter-spacing: 0.03em; }
-  .row-spot-h2 td:first-child { background: var(--brand-light); }
+  .row-spot-h1 td { background: #fafaf8; font-weight: bold; font-size: 10px; text-align: center; padding: 4px 6px; border-color: #e8e8e2; letter-spacing: 0.04em; text-transform: uppercase; color: #909088; }
+  .row-spot-h1 td:first-child { background: #fafaf8; text-align: left; font-size: 10px; color: #909088; text-transform: uppercase; letter-spacing: 0.04em; }
+  .row-spot-h2 td { background: #fafaf8; font-size: 9px; font-weight: bold; text-align: center; padding: 3px 4px; border-color: #e8e8e2; letter-spacing: 0.03em; color: #909088; }
+  .row-spot-h2 td:first-child { background: #fafaf8; }
   .row-spot-data td { background: #fff; text-align: center; font-size: 12px; padding: 4px; border-color: var(--border); vertical-align: middle; }
   .row-spot-data td:first-child { text-align: left; font-size: 11px; font-weight: bold; white-space: pre-wrap; vertical-align: top; padding: 5px 8px; }
   .check { font-size: 14px; font-weight: bold; color: var(--accent); }
@@ -71,7 +71,7 @@
 
   /* Spot cells in edit mode */
   .editing td[data-spot-type] { cursor: pointer; }
-  .editing td[data-spot-type]:hover { background: var(--brand-xlight) !important; }
+  .editing td[data-spot-type]:hover { background: #f0f0ea !important; }
   .editing td[data-spot-type="length-other"] { cursor: default; }
   .editing td[data-spot-type="length-other"]:hover { background: #fff !important; }
   td[data-spot-type].spot-checked { background: color-mix(in srgb, var(--accent) 15%, white) !important; }
