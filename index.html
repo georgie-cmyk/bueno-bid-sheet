@@ -19,7 +19,7 @@
     --brand-xlight: color-mix(in srgb, var(--brand) 5%, white);
     --border: #e0dbc9;
     --slate: #3D4255;
-    --cream: #F4F1E4;
+    --cream: #fcfaeb;
     --creamtext: #FFFFE5;
     --link: #3D4255;
     --dark: #262A35;
@@ -49,7 +49,7 @@
   .row-spot-h2 td { background: var(--slate); color: var(--creamtext); font-family: 'Faro Light', sans-serif; font-size: 8px; font-weight: 400; text-align: center; padding: 4px; border-color: #1a1d26; letter-spacing: 0.03em; }
   .row-spot-h2 td:first-child { background: var(--slate); }
   .row-spot-data td { background: #ffffff; text-align: center; font-size: 12px; padding: 5px; border-color: var(--border); vertical-align: middle; }
-  .row-spot-data td:first-child { text-align: left; font-size: 11px; font-weight: 700; white-space: pre-wrap; vertical-align: top; padding: 5px 8px; background: #ffffff; }
+  .row-spot-data td:first-child { text-align: left; font-size: 11px; font-weight: 700; white-space: pre-wrap; vertical-align: top; padding: 5px 8px; background: var(--cream); }
   .check { font-size: 14px; font-weight: bold; color: var(--accent); }
   .competition-item { margin-bottom: 2px; }
   a { color: var(--link); text-decoration: underline; word-break: break-all; }
@@ -279,6 +279,7 @@ function buildSheet(d) {
   var grid = buildInitialGrid(d);
   var r = [];
 
+  r.push('<tr><td colspan="10" style="padding:0;border:none;height:6px;background:var(--accent);"></td></tr>');
   r.push('<tr class="row-masthead"><td colspan="10" style="padding:0;">' +
     '<div class="mast-wrap">' +
     '<img src="/bueno-la.png" alt="bueno LA" style="height:56px;width:56px;object-fit:contain;flex-shrink:0;">' +
@@ -429,7 +430,7 @@ function buildSheet(d) {
   r.push('<tr><td colspan="10" style="padding:16px 0;border:none;background:var(--cream);text-align:center;">' +
     '<a href="https://wearebueno.com" target="_blank"><img src="/thank-you.gif" alt="Thank You Bueno!" style="display:inline-block;height:60px;width:auto;"></a>' +
     '</td></tr>');
-  r.push('<tr><td colspan="10" style="padding:0;border:none;height:4px;background:var(--accent);"></td></tr>');
+  r.push('<tr><td colspan="10" style="padding:0;border:none;height:6px;background:var(--accent);"></td></tr>');
 
   return r.join('\n');
 }
