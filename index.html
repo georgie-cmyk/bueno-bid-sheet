@@ -197,7 +197,7 @@ var NUM_SPOT_ROWS = 8;
 function fmtDate(iso) {
   if (!iso) return '';
   var p = iso.split('-');
-  return parseInt(p[1]) + '.' + p[2];
+  return p[1] + '/' + p[2];
 }
 function fmtDateLong(iso) {
   if (!iso) return '';
@@ -418,15 +418,6 @@ function buildSheet(d) {
   r.push(makeRow('Specialty reel created?:',
     d.specialtyReel ? '<a href="' + esc(d.specialtyReel) + '" target="_blank">' + esc(d.specialtyReel) + '</a>' : '',
     'specialtyReel', d.specialtyReel));
-  var bidSheetsVal = '';
-  if (d.bidSheets) {
-    var bsArr = Array.isArray(d.bidSheets) ? d.bidSheets : [d.bidSheets];
-    bidSheetsVal = bsArr.map(function(bs) {
-      var s = String(bs).trim();
-      return s.match(/^https?:\/\//) ? '<a href="' + esc(s) + '" target="_blank">' + esc(s) + '</a>' : esc(s);
-    }).join('<br>');
-  }
-  r.push(makeRow('Bid Sheets:', bidSheetsVal || '', null, ''));
   r.push(makeRow('Any other useful info for treatment or calls?',
     '<span style="white-space:pre-wrap">' + esc(d.treatmentNotes) + '</span>', 'treatmentNotes', d.treatmentNotes,
     1, 9, 'white-space:normal'));
