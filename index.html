@@ -314,7 +314,10 @@ function buildSheet(d) {
   }
   r.push(makeRow('Producer:',     producerDisplay,     'producerName', d.producerName));
   r.push(makeRow('Direct line:',  esc(d.producerDirectLine), 'producerDirectLine', d.producerDirectLine));
-  r.push(makeRow('Mobile:',       esc(d.producerMobile),     'producerMobile',     d.producerMobile));
+  var mobileHtml = producersArr.filter(function(p){ return p.mobile; }).map(function(p){
+    return esc(p.mobile) + ' <span style="color:var(--muted)">' + esc((p.name||'').split(' ')[0]) + '</span>';
+  }).join('<br>');
+  r.push(makeRow('Mobile:',       mobileHtml || esc(d.producerMobile),     'producerMobile',     d.producerMobile));
   r.push(makeRow('Email:',
     d.producerEmail ? '<a href="mailto:' + esc(d.producerEmail) + '">' + esc(d.producerEmail) + '</a>' : '',
     'producerEmail', d.producerEmail));
