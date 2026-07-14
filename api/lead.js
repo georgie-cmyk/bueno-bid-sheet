@@ -21,7 +21,7 @@ const WRITABLE = {
   treatmentNotes: 'Treatment Notes',
   client:           'Client',
   specialtyReel:    'Specialty Reel Created',
-  bidDate:          'Bid Sheet Date',
+  bidDate:          'Boards In Date',
   directorOverride: 'Director Override',
 };
 // spotNotes and spotGrid are handled together (spotGrid is embedded as JSON prefix in Spot Notes)
@@ -199,7 +199,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       id: lead.id,
       client:      f['Client'] || '',
-      date:        f['Bid Sheet Date'] || new Date().toISOString().slice(0,10),
+      date:        f['Boards In Date'] || new Date().toISOString().slice(0,10),
       assignedTo:  selectNames(f['Assigned To'])[0] || '',
 
       agencyId:      agencyRecs[0]?.id || '',
