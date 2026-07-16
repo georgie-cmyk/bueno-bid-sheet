@@ -315,7 +315,6 @@ function buildSheet(d) {
     producerDisplay = esc(d.producerName);
   }
   r.push(makeRow('Producer:',     producerDisplay,     'producerName', d.producerName));
-  r.push(makeRow('Direct line:',  esc(d.producerDirectLine), 'producerDirectLine', d.producerDirectLine));
   var mobileHtml = producersArr.filter(function(p){ return p.mobile; }).map(function(p){
     return esc(p.mobile) + ' <span style="color:var(--muted)">' + esc((p.name||'').split(' ')[0]) + '</span>';
   }).join('<br>');
