@@ -1,3 +1,4 @@
+const ogAddress = require('./_address');
 const BASE_ID = 'appb2j15wK5KPtFF3';
 const LEADS_TABLE = 'tbl6YVJ5xGzSRWSa3';
 const DIRECTOR_LEADS_TABLE = 'tbl08kVBBTQRtDxVD';
@@ -204,15 +205,7 @@ module.exports = async (req, res) => {
 
       agencyId:      agencyRecs[0]?.id || '',
       agency:        agencyRecs.map(r => r.fields['Company']).filter(Boolean).join(', '),
-      agencyAddress: agencyRecs.map(r => {
-        const name = (r.fields['Company'] || '').trim();
-        const addr = (r.fields['Full Address'] || '').trim();
-        const lines = addr.split('\n');
-        // Strip first line if it duplicates the company name
-        return (lines[0] && lines[0].trim().toLowerCase() === name.toLowerCase())
-          ? lines.slice(1).join('\n').trim()
-          : addr;
-      }).filter(Boolean).join('\n'),
+      agencyAddress: agencyRecs.map(r => ogAddress(r.fields)).filter(Boolean).join('\n'),
       agencyPhone:   agencyRecs.map(r => r.fields['Main Office Number']).filter(Boolean).join(', '),
 
       producerName:       producerRecs.map(r => r.fields['Name']).filter(Boolean).join(', '),

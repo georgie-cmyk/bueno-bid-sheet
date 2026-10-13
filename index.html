@@ -196,16 +196,14 @@ var spotGridEdit = {};  // rowIndex -> { l: [...], d: [...] }
 var NUM_SPOT_ROWS = 8;
 
 /* ── UTILITIES ─────────────────────────────────────────────── */
+// "2026-10-22" → "10/22/26"
 function fmtDate(iso) {
   if (!iso) return '';
-  var p = iso.split('-');
-  return p[1] + '/' + p[2];
+  var p = String(iso).split('-');
+  if (p.length !== 3) return iso;
+  return ('0' + p[1]).slice(-2) + '/' + ('0' + p[2]).slice(-2) + '/' + p[0].slice(-2);
 }
-function fmtDateLong(iso) {
-  if (!iso) return '';
-  try { return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {month:'numeric',day:'numeric'}); }
-  catch(e) { return iso; }
-}
+function fmtDateLong(iso) { return fmtDate(iso); }
 function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escA(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/\n/g,'&#10;'); }
 
@@ -289,7 +287,8 @@ function buildSheet(d) {
   r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
 
   var dv = d.directors.length ? d.directors.map(function(x) { return x.name + (x.company ? ' / ' + x.company : ''); }).join('\n') : '';
-  var dirDisplay = d.directorOverride || dv;
+  // Show director names only; the production company stays in the data for file names
+  var dirDisplay = String(d.directorOverride || dv).split('\n').map(function(l){ return l.split(' / ')[0].trim(); }).filter(Boolean).join('\n');
   r.push('<tr class="row-info-val">' +
     '<td colspan="1" data-field="bidDate" data-raw="' + escA(d.date) + '">' + esc(fmtDate(d.date)) + '</td>' +
     '<td colspan="3" style="white-space:pre-wrap" data-field="directorOverride" data-raw="' + escA(d.directorOverride || dv) + '">' + esc(dirDisplay) + '</td>' +

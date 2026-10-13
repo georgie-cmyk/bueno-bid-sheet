@@ -1,3 +1,4 @@
+const ogAddress    = require('./_address');
 const BASE_ID      = 'appb2j15wK5KPtFF3';
 const COMPANIES_TABLE = 'tbla3CGnVGsBQXPhi';
 
@@ -29,7 +30,7 @@ module.exports = async (req, res) => {
     let offset = null;
 
     do {
-      const params = 'fields[]=Company&fields[]=Full+Address&fields[]=Main+Office+Number&pageSize=100' +
+      const params = 'fields[]=Company&fields[]=Address&fields[]=State&fields[]=Zip&fields[]=Main+Office+Number&pageSize=100' +
         '&filterByFormula=' + TYPE_FILTER +
         (offset ? '&offset=' + encodeURIComponent(offset) : '');
       const data = await atGet(`${COMPANIES_TABLE}?${params}`, token);
@@ -40,7 +41,7 @@ module.exports = async (req, res) => {
         agencies.push({
           id:      r.id,
           name,
-          address: (r.fields['Full Address'] || '').trim(),
+          address: ogAddress(r.fields),
           phone:   (r.fields['Main Office Number'] || '').trim(),
         });
       }
