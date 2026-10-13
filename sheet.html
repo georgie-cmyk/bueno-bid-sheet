@@ -195,6 +195,16 @@ function fmtDate(iso) {
   return ('0' + p[1]).slice(-2) + '/' + ('0' + p[2]).slice(-2) + '/' + p[0].slice(-2);
 }
 function fmtDateLong(iso) { return fmtDate(iso); }
+// Free-text dates like "11/9-11/11" → "11/09/26–11/11/26" (year from the bid date)
+function fmtTextDates(txt, bidIso) {
+  if (!txt) return '';
+  var y = Number(String(bidIso || '').slice(0, 4)) || new Date().getFullYear();
+  var m0 = Number(String(bidIso || '').slice(5, 7)) || 1;
+  return String(txt).replace(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/g, function(_, mo, da, yr) {
+    var yy = yr ? String(yr).slice(-2) : String(Number(mo) < m0 ? y + 1 : y).slice(-2);
+    return ('0' + mo).slice(-2) + '/' + ('0' + da).slice(-2) + '/' + yy;
+  }).replace(/\s*-\s*/g, '–');
+}
 function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escA(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/\n/g,'&#10;'); }
 
@@ -377,7 +387,7 @@ function buildSheet(d) {
   r.push(makeRow('Treatment due:',  esc(fmtDateLong(d.treatmentDue)), 'treatmentDue',  d.treatmentDue));
   r.push(makeRow('Bid due:',        esc(fmtDateLong(d.bidDue)),       'bidDue',         d.bidDue));
   r.push(makeRow('Award date:',     esc(fmtDateLong(d.awardDate)),    'awardDate',      d.awardDate));
-  r.push(makeRow('Shoot dates:',    esc(d.shootDate),    'shootDate',     d.shootDate));
+  r.push(makeRow('Shoot dates:',    esc(fmtTextDates(d.shootDate, d.date)),    'shootDate',     d.shootDate));
   r.push(makeRow('Location:',       esc(d.shootLocation),'shootLocation', d.shootLocation));
   r.push(makeRow('Delivery date:',  esc(fmtDateLong(d.deliveryDate)), 'deliveryDate',   d.deliveryDate));
   r.push(makeRow('Air date:',       esc(fmtDateLong(d.airDate)),      'airDate',        d.airDate));
