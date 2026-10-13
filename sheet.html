@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bueno Bid Spec</title>
+<style>
+  /* Matches the Google Sheets bid spec template: Cambria, black grid, grey section bars */
+  @import url('https://fonts.googleapis.com/css2?family=Caladea:ital,wght@0,400;0,700;1,400&display=swap');
+  :root {
+    --brand:   #000000;
+    --accent:  #EE2F34;
+    --border:  #000000;
+    --grey:    #D9D9D9;
+    --ink:     #000000;
+    --link:    #1155CC;
+    --muted:   #555555;
+    --labelbg: #ffffff;
+    --cream:   #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Cambria, Caladea, Georgia, serif; font-size: 13px; background: #f3f3f3; color: var(--ink); }
+  #loading, #error {
+    display: flex; align-items: center; justify-content: center;
+    height: 100vh; font-size: 14px; color: #555; flex-direction: column; gap: 12px;
+  }
+  #error { color: #c00; }
+  #sheet-wrap { display: none; max-width: 1000px; margin: 24px auto 80px; background: #fff; padding: 24px 28px 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+  table.sheet { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  table.sheet col.c-title  { width: 24%; }
+  table.sheet col.c-narrow { width: 7.6%; }
+  table.sheet td { border: 1px solid var(--border); padding: 3px 6px; vertical-align: top; line-height: 1.35; word-wrap: break-word; }
+  .mast-wrap { display: flex; align-items: flex-end; padding: 0 0 2px; }
+  table.sheet .row-masthead td { background: #fff; padding: 0; text-align: left; border: none; }
+  .row-banner td { background: var(--grey); font-weight: 700; font-size: 14px; text-transform: uppercase; text-align: center; padding: 3px; }
+  table.sheet .row-spacer td { border: none; height: 14px; padding: 0; }
+  .row-section td { background: var(--grey); font-weight: 700; font-size: 13px; text-align: center; padding: 3px; }
+  .row-info-hdr td { background: #fff; font-weight: 700; text-align: center; }
+  .row-info-val td { background: #fff; text-align: center; vertical-align: middle; }
+  td.label { background: #fff; font-weight: 700; text-align: right; white-space: normal; vertical-align: top; }
+  td.data { background: #fff; white-space: pre-wrap; }
+  .row-spot-h1 td, .row-spot-h2 td { background: #fff; font-weight: 700; text-align: center; padding: 3px; }
+  .row-spot-h1 td:first-child { vertical-align: top; }
+  .row-spot-data td { background: #fff; text-align: center; vertical-align: middle; height: 22px; padding: 3px; }
+  .row-spot-data td:first-child { text-align: left; white-space: pre-wrap; vertical-align: top; }
+  .check { font-size: 14px; font-weight: bold; color: var(--accent); }
+  .competition-item { margin-bottom: 2px; }
+  a { color: var(--link); text-decoration: underline; word-break: break-all; }
+  .creative-item { display: block; margin-bottom: 2px; }
+  .contact-link { color: var(--link); text-decoration: underline; cursor: pointer; }
+  .contact-link:hover { text-decoration: none; }
+  /* Creative items: name is a clickable link (brand color), title in italics, no bold */
+  .creative-item .contact-link { font-weight: normal; text-decoration: underline; color: var(--link); }
+  .creative-item .contact-link:hover { text-decoration: underline; }
+
+  /* CONTACT POPUP */
+  #contact-popup {
+    display: none; position: fixed; z-index: 200;
+    background: #fff; border: 1px solid #c0c8d8; border-radius: 6px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.18); padding: 14px 16px 12px;
+    min-width: 220px; max-width: 300px; font-size: 12px; line-height: 1.6;
+  }
+  #contact-popup h4 { font-size: 13px; color: var(--brand); margin-bottom: 8px; padding-right: 20px; }
+  #contact-popup .popup-row { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 3px; color: #333; }
+  #contact-popup .popup-label { color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; min-width: 52px; padding-top: 1px; }
+  #contact-popup a { color: #1155CC; word-break: break-all; }
+  #popup-close { position: absolute; top: 8px; right: 10px; background: none; border: none; font-size: 16px; cursor: pointer; color: #888; line-height: 1; padding: 0; }
+  #popup-close:hover { color: #000; }
+
+  /* EDIT MODE */
+  .edit-input { width: 100%; font-family: Arial, Helvetica, sans-serif; font-size: 12px; padding: 2px 4px; border: 1px solid var(--brand); border-radius: 2px; background: #fff; resize: vertical; min-height: 24px; }
+  .edit-input:focus { outline: 2px solid var(--accent); }
+  .editing td[data-field] { background: #fff !important; outline: 1.5px inset rgba(238,47,52,0.25); }
+
+  /* Spot cells in edit mode */
+  .editing td[data-spot-type] { cursor: pointer; }
+  .editing td[data-spot-type]:hover { background: #f0f0ea !important; }
+  .editing td[data-spot-type="length-other"] { cursor: default; }
+  .editing td[data-spot-type="length-other"]:hover { background: #fff !important; }
+  td[data-spot-type].spot-checked { background: color-mix(in srgb, var(--accent) 15%, white) !important; }
+
+  /* BOTTOM BAR */
+  #edit-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 20px; font-size: 13px; z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,0.2); }
+  #edit-bar button { padding: 6px 18px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: bold; }
+  #btn-edit   { background: rgba(255,255,255,0.9); color: var(--brand); }
+  #btn-save   { background: var(--accent); color: #fff; }
+  #btn-cancel { background: rgba(255,255,255,0.3); color: #fff; }
+  #colour-wrap { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
+  #colour-wrap input[type=color] { width: 22px; height: 22px; padding: 0; border: none; cursor: pointer; border-radius: 3px; }
+  #btn-dismiss-colour { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 14px; cursor: pointer; padding: 0 2px; line-height: 1; font-weight: bold; }
+  #btn-dismiss-colour:hover { color: #fff; }
+  #btn-print  { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+  #btn-print:hover { background: rgba(255,255,255,0.25); }
+  #edit-status { font-size: 12px; min-width: 140px; text-align: center; }
+
+  @media print {
+    body { background: #fff; }
+    #sheet-wrap { max-width: 100%; margin: 0; box-shadow: none; }
+    #edit-bar { display: none !important; }
+    .row-masthead td, .row-section td, .row-info-hdr td, .row-info-val td,
+    td.label, .row-spot-h1 td, .row-spot-h2 td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <svg width="32" height="32" viewBox="0 0 32 32" style="animation:spin 1s linear infinite">
+    <circle cx="16" cy="16" r="12" fill="none" stroke="#2F5496" stroke-width="3" stroke-dasharray="56" stroke-dashoffset="14"/>
+  </svg>
+  Loading bid spec&hellip;
+</div>
+
+<div id="error" style="display:none">
+  <strong>Bid spec not found.</strong>
+  <span id="error-detail" style="font-size:12px;color:#888;"></span>
+</div>
+
+<div id="sheet-wrap">
+  <table class="sheet">
+    <colgroup>
+      <col class="c-title">
+      <col class="c-narrow"><col class="c-narrow"><col class="c-narrow">
+      <col class="c-narrow"><col class="c-narrow"><col class="c-narrow">
+      <col class="c-narrow"><col class="c-narrow"><col class="c-narrow">
+    </colgroup>
+    <tbody id="sheet-body"></tbody>
+  </table>
+</div>
+
+<div id="edit-bar">
+  <button id="btn-edit"   onclick="enterEditMode()">&#9998; Edit</button>
+  <button id="btn-save"   style="display:none" onclick="saveChanges()">&#128190; Save changes</button>
+  <button id="btn-cancel" style="display:none" onclick="exitEditMode(true)">&#10005; Cancel</button>
+  <button id="btn-print"  onclick="window.print()">&#128438; PDF</button>
+  <label id="colour-wrap" title="Change brand colour">
+    &#127912; Colour
+    <input type="color" id="brand-colour" value="#262A35" oninput="updateColour(this.value)">
+    <button id="btn-dismiss-colour" onclick="dismissColour(event)" title="Hide">&#10005;</button>
+  </label>
+  <span id="edit-status"></span>
+</div>
+
+<!-- Contact popup -->
+<div id="contact-popup">
+  <button id="popup-close" onclick="closePopup()">&#10005;</button>
+  <h4 id="popup-name"></h4>
+  <div id="popup-body"></div>
+</div>
+
+<!-- Datalists for autocomplete -->
+<datalist id="dl-directors"></datalist>
+<datalist id="dl-agencies"></datalist>
+
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<script>
+var LENGTH_COLS      = [':15',':30',':60',':90','Other'];
+var DELIVERABLE_COLS = ['Broadcast','VR','Online','Other'];
+
+var AIRTABLE_BASE    = 'appb2j15wK5KPtFF3';
+var AIRTABLE_PEOPLE  = 'tblX85mK7o9AMp8Uy';
+
+var FIELD_TYPES = {
+  spotTitle:'textarea', spotNotes:'textarea', budget:'text',
+  treatmentDue:'date', bidDue:'date', awardDate:'date',
+  shootDate:'text', shootLocation:'text',
+  deliveryDate:'date', airDate:'date',
+  launchCampaign:'textarea', references:'textarea',
+  talent:'textarea', treatmentNotes:'textarea',
+  client:'text', assignedTo:'select',
+  agency:'agency-select',
+  producerName:'text', producerDirectLine:'text', producerMobile:'text', producerEmail:'text',
+  creatives:'textarea',
+  specialtyReel:'text',
+  bidDate:'date', directorOverride:'director-select'
+};
+
+var pendingAgencyId   = null;
+var agenciesData      = [];
+var directorsData     = [];
+var allPeopleData     = [];
+var staffData         = [];
+
+var currentData  = null;
+var spotGridEdit = {};  // rowIndex -> { l: [...], d: [...] }
+var NUM_SPOT_ROWS = 8;
+
+/* ── UTILITIES ─────────────────────────────────────────────── */
+// "2026-10-22" → "10/22/26"
+function fmtDate(iso) {
+  if (!iso) return '';
+  var p = String(iso).split('-');
+  if (p.length !== 3) return iso;
+  return ('0' + p[1]).slice(-2) + '/' + ('0' + p[2]).slice(-2) + '/' + p[0].slice(-2);
+}
+function fmtDateLong(iso) { return fmtDate(iso); }
+function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escA(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/\n/g,'&#10;'); }
+
+/* ── CONTACT POPUP ─────────────────────────────────────────── */
+function contactSpan(person, labelHtml) {
+  // person = { name, email, mobile, linkedin }
+  var data = JSON.stringify({ name: person.name, email: person.email || '', mobile: person.mobile || '', linkedin: person.linkedin || '' });
+  var display = (labelHtml !== undefined) ? labelHtml : esc(person.name);
+  return '<span class="contact-link" data-contact=\'' + data.replace(/'/g, '&#39;') + '\'>' + display + '</span>';
+}
+
+function showPopup(el) {
+  var data; try { data = JSON.parse(el.getAttribute('data-contact')); } catch(e) { return; }
+  document.getElementById('popup-name').textContent = data.name;
+  var body = '';
+  if (data.email)    body += '<div class="popup-row"><span class="popup-label">Email</span><a href="mailto:' + esc(data.email) + '">' + esc(data.email) + '</a></div>';
+  if (data.mobile)   body += '<div class="popup-row"><span class="popup-label">Phone</span><span>' + esc(data.mobile) + '</span></div>';
+  if (data.linkedin) body += '<div class="popup-row"><span class="popup-label">LinkedIn</span><a href="' + esc(data.linkedin) + '" target="_blank">' + esc(data.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//,'')) + '</a></div>';
+  if (!data.email && !data.mobile && !data.linkedin) body = '<div style="color:#888;font-size:11px">No contact info on file</div>';
+  document.getElementById('popup-body').innerHTML = body;
+
+  var popup = document.getElementById('contact-popup');
+  popup.style.display = 'block';
+  var rect = el.getBoundingClientRect();
+  var top = rect.bottom + window.scrollY + 4;
+  var left = rect.left + window.scrollX;
+  // Keep within viewport
+  if (left + 300 > window.innerWidth) left = Math.max(0, window.innerWidth - 310);
+  popup.style.top  = top  + 'px';
+  popup.style.left = left + 'px';
+}
+
+function closePopup() { document.getElementById('contact-popup').style.display = 'none'; }
+
+document.addEventListener('click', function(e) {
+  var popup = document.getElementById('contact-popup');
+  if (!popup) return;
+  var el = e.target.closest ? e.target.closest('.contact-link') : null;
+  if (el) { e.stopPropagation(); showPopup(el); return; }
+  if (!popup.contains(e.target)) closePopup();
+});
+
+function makeRow(lbl, val, fkey, raw, lspan, vspan, labelStyle) {
+  lspan = lspan || 1; vspan = vspan || 9;
+  var da = fkey ? ' data-field="' + fkey + '" data-raw="' + escA(raw || '') + '"' : '';
+  var ls = labelStyle ? ' style="' + labelStyle + '"' : '';
+  return '<tr><td class="label" colspan="' + lspan + '"' + ls + '>' + lbl + '</td><td class="data" colspan="' + vspan + '"' + da + '>' + val + '</td></tr>';
+}
+function secRow(t) { return '<tr class="row-section"><td colspan="10">' + esc(t) + '</td></tr>'; }
+
+/* ── SPOT GRID HELPERS ─────────────────────────────────────── */
+// Derive per-row grid from API data
+function buildInitialGrid(d) {
+  var grid = [];
+  var numRows = Math.max(NUM_SPOT_ROWS, d.spotTitle ? d.spotTitle.split('\n').filter(Boolean).length : 0);
+  numRows = Math.max(numRows, NUM_SPOT_ROWS);
+  for (var i = 0; i < NUM_SPOT_ROWS; i++) {
+    if (d.spotGrid && d.spotGrid[i]) {
+      grid.push({ l: d.spotGrid[i].l || [], d: d.spotGrid[i].d || [], otherL: d.spotGrid[i].otherL || '' });
+    } else if (i === 0 && !d.spotGrid) {
+      // Legacy: first row inherits the global spotLength / spotDeliverables
+      grid.push({ l: d.spotLength || [], d: d.spotDeliverables || [], otherL: '' });
+    } else {
+      grid.push({ l: [], d: [], otherL: '' });
+    }
+  }
+  return grid;
+}
+
+/* ── BUILD SHEET HTML ──────────────────────────────────────── */
+function buildSheet(d) {
+  currentData = d;
+  var grid = buildInitialGrid(d);
+  var r = [];
+
+  r.push('<tr class="row-masthead"><td colspan="10" style="padding:0;">' +
+    '<div class="mast-wrap">' +
+    '<img src="/bueno-red.png" alt="bueno" style="height:44px;width:44px;object-fit:contain;">' +
+    '</div></td></tr>');
+  r.push('<tr class="row-banner"><td colspan="10">Bueno Bid Specs Sheet</td></tr>');
+  r.push('<tr class="row-spacer"><td colspan="10"></td></tr>');
+  r.push('<tr class="row-info-hdr"><td colspan="1">Date</td><td colspan="3">Director</td><td colspan="4">Client / Project</td><td colspan="2">Sales Rep</td></tr>');
+
+  var dv = d.directors.length ? d.directors.map(function(x) { return x.name + (x.company ? ' / ' + x.company : ''); }).join('\n') : '';
+  // Show director names only; the production company stays in the data for file names
+  var dirDisplay = String(d.directorOverride || dv).split('\n').map(function(l){ return l.split(' / ')[0].trim(); }).filter(Boolean).join('\n');
+  r.push('<tr class="row-info-val">' +
+    '<td colspan="1" data-field="bidDate" data-raw="' + escA(d.date) + '">' + esc(fmtDate(d.date)) + '</td>' +
+    '<td colspan="3" style="white-space:pre-wrap" data-field="directorOverride" data-raw="' + escA(d.directorOverride || dv) + '">' + esc(dirDisplay) + '</td>' +
+    '<td colspan="4" data-field="client" data-raw="' + escA(d.client) + '">' + esc(d.client) + '</td>' +
+    '<td colspan="2" data-field="assignedTo" data-raw="' + escA(d.assignedTo) + '">' + esc(d.assignedTo) + '</td>' +
+  '</tr>');
+
+  r.push(secRow('Agency Info / Personnel / Contact'));
+  r.push('<tr><td class="label" colspan="1">Agency:</td>' +
+    '<td class="data" colspan="9" data-field="agency" data-raw="' + escA(d.agency) + '" data-agency-id="' + escA(d.agencyId || '') + '">' +
+    esc(d.agency) + '</td></tr>');
+  r.push('<tr><td class="label" colspan="1">Address:</td>' +
+    '<td class="data" colspan="9" id="agency-address-cell" style="white-space:pre-wrap">' + esc(d.agencyAddress) + '</td></tr>');
+  r.push('<tr><td class="label" colspan="1">Phone:</td>' +
+    '<td class="data" colspan="9" id="agency-phone-cell">' + esc(d.agencyPhone) + '</td></tr>');
+
+  // Producer row — clickable popup with contact info
+  var producersArr = Array.isArray(d.producers) ? d.producers : [];
+  var producerDisplay = '';
+  if (producersArr.length) {
+    producerDisplay = producersArr.map(function(p) { return contactSpan(p); }).join(', ');
+  } else if (d.producerName) {
+    producerDisplay = esc(d.producerName);
+  }
+  r.push(makeRow('Producer:',     producerDisplay,     'producerName', d.producerName));
+  var mobileHtml = producersArr.filter(function(p){ return p.mobile; }).map(function(p){
+    return esc(p.mobile) + ' <span style="color:var(--muted)">' + esc((p.name||'').split(' ')[0]) + '</span>';
+  }).join('<br>');
+  r.push(makeRow('Mobile:',       mobileHtml || esc(d.producerMobile),     'producerMobile',     d.producerMobile));
+  r.push(makeRow('Email:',
+    d.producerEmail ? '<a href="mailto:' + esc(d.producerEmail) + '">' + esc(d.producerEmail) + '</a>' : '',
+    'producerEmail', d.producerEmail));
+
+  // Creative team — clickable popup, no external links
+  var creativesArr = Array.isArray(d.creatives) ? d.creatives : [];
+  var creativesRaw = creativesArr.map(function(c) { return c.name; }).join('\n');
+  var ch = creativesArr.length ? creativesArr.map(function(c) {
+    var nameLink = contactSpan(c, esc(c.name));
+    var titlePart = c.title ? ' - <em>' + esc(c.title) + '</em>' : '';
+    return '<span class="creative-item">&bull; ' + nameLink + titlePart + '</span>';
+  }).join('') : '';
+  r.push(makeRow('Creative Team:', ch, 'creatives', creativesRaw));
+
+  /* ── SPOT INFORMATION ── */
+  r.push(secRow('Spot Information'));
+  r.push('<tr class="row-spot-h1"><td rowspan="2" style="vertical-align:middle">Title</td><td colspan="5" style="text-align:center">Length</td><td colspan="4" style="text-align:center">Deliverables</td></tr>');
+  r.push('<tr class="row-spot-h2">' +
+    LENGTH_COLS.map(function(c) { return '<td>' + c + '</td>'; }).join('') +
+    DELIVERABLE_COLS.map(function(c) { return '<td>' + c + '</td>'; }).join('') +
+  '</tr>');
+
+  var titles = d.spotTitle ? d.spotTitle.split('\n').map(function(s){return s.trim();}).filter(Boolean) : [];
+  var totalRows = Math.max(NUM_SPOT_ROWS, titles.length + 2);
+  totalRows = NUM_SPOT_ROWS; // keep fixed at 5 for consistent layout
+
+  for (var i = 0; i < totalRows; i++) {
+    var title = titles[i] || '';
+    var rowGrid = grid[i] || { l: [], d: [] };
+    // Each row gets its own editable title cell
+    var fa = ' data-field="spotTitleRow" data-spot-title-row="' + i + '" data-raw="' + escA(title) + '"';
+
+    var lc = LENGTH_COLS.map(function(col) {
+      if (col === 'Other') {
+        var otherText = rowGrid.otherL || '';
+        return '<td data-spot-row="' + i + '" data-spot-type="length-other" style="text-align:left;font-size:11px;padding:3px 5px;">' +
+               esc(otherText) + '</td>';
+      }
+      var checked = rowGrid.l.indexOf(col) >= 0;
+      var cls = checked ? ' spot-checked' : '';
+      return '<td data-spot-row="' + i + '" data-spot-type="length" data-spot-col="' + escA(col) + '" class="' + cls + '">' +
+             (checked ? '<span class="check">&#x2717;</span>' : '') + '</td>';
+    }).join('');
+    var dc = DELIVERABLE_COLS.map(function(col) {
+      var checked = rowGrid.d.indexOf(col) >= 0;
+      var cls = checked ? ' spot-checked' : '';
+      return '<td data-spot-row="' + i + '" data-spot-type="del" data-spot-col="' + escA(col) + '" class="' + cls + '">' +
+             (checked ? '<span class="check">&#x2717;</span>' : '') + '</td>';
+    }).join('');
+
+    r.push('<tr class="row-spot-data"><td' + fa + '>' + (title ? esc(title) : '&nbsp;') + '</td>' + lc + dc + '</tr>');
+  }
+
+  r.push(makeRow('Notes:', '<span style="white-space:pre-wrap">' + esc(d.spotNotes) + '</span>', 'spotNotes', d.spotNotes));
+  r.push(makeRow('Budget information:', esc(d.budget), 'budget', d.budget));
+
+  // Director competition — single merged cell, no reel
+  var compData = Array.isArray(d.competitionData) ? d.competitionData : [];
+  var compHtml = compData.filter(function(cd){ return cd && cd.name; }).map(function(cd){
+    return esc(cd.name) + (cd.company ? ' <span style="color:var(--muted)">/ ' + esc(cd.company) + '</span>' : '');
+  }).join('<br>');
+  r.push('<tr><td class="label" colspan="1">Director competition:</td>' +
+    '<td class="data" colspan="9">' + (compHtml || '&nbsp;') + '</td></tr>');
+
+  r.push(makeRow('Treatment due:',  esc(fmtDateLong(d.treatmentDue)), 'treatmentDue',  d.treatmentDue));
+  r.push(makeRow('Bid due:',        esc(fmtDateLong(d.bidDue)),       'bidDue',         d.bidDue));
+  r.push(makeRow('Award date:',     esc(fmtDateLong(d.awardDate)),    'awardDate',      d.awardDate));
+  r.push(makeRow('Shoot dates:',    esc(d.shootDate),    'shootDate',     d.shootDate));
+  r.push(makeRow('Location:',       esc(d.shootLocation),'shootLocation', d.shootLocation));
+  r.push(makeRow('Delivery date:',  esc(fmtDateLong(d.deliveryDate)), 'deliveryDate',   d.deliveryDate));
+  r.push(makeRow('Air date:',       esc(fmtDateLong(d.airDate)),      'airDate',        d.airDate));
+
+  r.push(secRow('Creative Reference'));
+  var creativeHtml = '';
+  if (d.creativeAttachments && d.creativeAttachments.length) {
+    creativeHtml = d.creativeAttachments.map(function(a) {
+      var isImage = a.type && a.type.startsWith('image/');
+      var isPdf   = a.type && a.type.indexOf('pdf') >= 0;
+      var icon    = isPdf ? '📄 ' : (isImage ? '🖼 ' : '📎 ');
+      var content = '';
+      if (isImage && a.thumb) {
+        content = '<a href="' + esc(a.url) + '" target="_blank">' +
+          '<img src="' + esc(a.thumb) + '" style="max-height:120px;max-width:200px;display:block;margin-bottom:4px;border:1px solid #ccc;">' +
+          '<span style="font-size:10px;color:#555;">' + esc(a.filename) + '</span></a>';
+      } else {
+        content = icon + '<a href="' + esc(a.url) + '" target="_blank">' + esc(a.filename) + '</a>';
+      }
+      return '<div style="margin-bottom:8px;">' + content + '</div>';
+    }).join('');
+  } else {
+    creativeHtml = '<span style="color:#999;font-style:italic;">No creative attached</span>';
+  }
+  r.push('<tr><td class="label" colspan="1">Creative:</td><td class="data" colspan="9">' + creativeHtml + '</td></tr>');
+
+  r.push(secRow('Campaign Information'));
+  r.push(makeRow('Launch or previous campaign:', '<span style="white-space:pre-wrap">' + esc(d.launchCampaign) + '</span>', 'launchCampaign', d.launchCampaign));
+  r.push(makeRow('References:',  '<span style="white-space:pre-wrap">' + esc(d.references) + '</span>', 'references', d.references));
+  r.push(makeRow('Talent:',      '<span style="white-space:pre-wrap">' + esc(d.talent)     + '</span>', 'talent',     d.talent));
+
+  r.push(secRow('General Information'));
+  r.push(makeRow('Specialty reel created?:',
+    d.specialtyReel ? '<a href="' + esc(d.specialtyReel) + '" target="_blank">' + esc(d.specialtyReel) + '</a>' : '',
+    'specialtyReel', d.specialtyReel));
+  r.push(makeRow('Any other useful info for treatment or calls?',
+    '<span style="white-space:pre-wrap">' + esc(d.treatmentNotes) + '</span>', 'treatmentNotes', d.treatmentNotes,
+    1, 9, 'white-space:normal'));
+
+  // Footer — Thank You GIF, no background
+  r.push('<tr><td colspan="10" style="padding:16px 0;border:none;background:var(--labelbg);text-align:center;">' +
+    '<a href="https://wearebueno.com" target="_blank"><img src="/thank-you.gif" alt="Thank You Bueno!" style="display:inline-block;height:60px;width:auto;"></a>' +
+    '</td></tr>');
+
+  return r.join('\n');
+}
+
+/* ── COLOUR PICKER ─────────────────────────────────────────── */
+function updateColour(val) {
+  document.documentElement.style.setProperty('--brand', val);
+  try { localStorage.setItem('bueno-brand', val); } catch(e) {}
+}
+function dismissColour(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('colour-wrap').style.display = 'none';
+  try { localStorage.setItem('bueno-colour-hidden','1'); } catch(e) {}
+}
+
+/* ── EDIT MODE ─────────────────────────────────────────────── */
+function enterEditMode() {
+  document.getElementById('sheet-wrap').classList.add('editing');
+  document.getElementById('btn-edit').style.display   = 'none';
+  document.getElementById('btn-save').style.display   = '';
+  document.getElementById('btn-cancel').style.display = '';
+  document.getElementById('edit-status').textContent  = 'Editing — unsaved changes';
+
+  // Initialise per-row spot grid from currentData
+  spotGridEdit = {};
+  var grid = buildInitialGrid(currentData);
+  for (var i = 0; i < NUM_SPOT_ROWS; i++) {
+    spotGridEdit[i] = {
+      l:      (grid[i] || {l:[]}).l.slice(),
+      d:      (grid[i] || {d:[]}).d.slice(),
+      otherL: (grid[i] || {otherL:''}).otherL || '',
+    };
+  }
+
+  // Wire up spot cells as per-row toggles (or text inputs for length-other)
+  document.querySelectorAll('td[data-spot-type]').forEach(function(td) {
+    var spotType = td.getAttribute('data-spot-type');
+    if (spotType === 'length-other') {
+      // Replace with a free-text input
+      var ri = parseInt(td.getAttribute('data-spot-row'));
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'edit-input';
+      inp.style.width = '100%';
+      inp.style.fontSize = '11px';
+      inp.placeholder = 'e.g. 2:30';
+      inp.value = spotGridEdit[ri].otherL || '';
+      inp.addEventListener('input', (function(rowIndex) {
+        return function() { spotGridEdit[rowIndex].otherL = this.value; };
+      })(ri));
+      td.innerHTML = '';
+      td.style.textAlign = 'left';
+      td.appendChild(inp);
+      return;
+    }
+    td.onclick = function() {
+      var ri   = parseInt(this.getAttribute('data-spot-row'));
+      var type = this.getAttribute('data-spot-type'); // 'length' | 'del'
+      var col  = this.getAttribute('data-spot-col');
+      var arr  = type === 'length' ? spotGridEdit[ri].l : spotGridEdit[ri].d;
+      var idx  = arr.indexOf(col);
+      if (idx >= 0) { arr.splice(idx, 1); } else { arr.push(col); }
+      var checked = arr.indexOf(col) >= 0;
+      this.innerHTML = checked ? '<span class="check">&#x2717;</span>' : '';
+      this.classList.toggle('spot-checked', checked);
+    };
+  });
+
+  // Replace td[data-field] cells with inputs
+  document.querySelectorAll('td[data-field]').forEach(function(td) {
+    var field = td.getAttribute('data-field');
+    var raw   = td.getAttribute('data-raw') || '';
+    var el;
+
+    if (field === 'spotTitleRow') {
+      // Each spot title row gets its own single-line text input
+      el = document.createElement('input'); el.type = 'text';
+      el.placeholder = 'Spot title…';
+    } else if (field === 'agency') {
+      el = document.createElement('input'); el.type = 'text';
+      el.setAttribute('list', 'dl-agencies');
+      el.placeholder = 'Type agency name…';
+      (function(cell) {
+        el.addEventListener('change', function() {
+          var typed = this.value.trim().toLowerCase();
+          var match = agenciesData.find(function(a) {
+            return a.name.trim().toLowerCase() === typed;
+          });
+          if (match) {
+            pendingAgencyId = match.id;
+            var addrCell = document.getElementById('agency-address-cell');
+            var phoneCell = document.getElementById('agency-phone-cell');
+            if (addrCell) addrCell.textContent = match.address || '';
+            if (phoneCell) phoneCell.textContent = match.phone || '';
+          }
+        });
+      })(td);
+    } else if (field === 'assignedTo') {
+      var curSalesRep = raw;
+      el = document.createElement('select');
+      el.innerHTML = '<option value="">— Select sales rep —</option>';
+      if (curSalesRep) {
+        el.innerHTML += '<option value="' + escAttr(curSalesRep) + '" selected>' + escHtml(curSalesRep) + '</option>';
+      }
+      var buildSalesRepSelect = (function(select, current) {
+        return function(people) {
+          staffData = people;
+          select.innerHTML = '<option value="">— Select sales rep —</option>';
+          people.forEach(function(p) {
+            var o = document.createElement('option');
+            o.value = p.name; o.textContent = p.name;
+            if (p.name === current) o.selected = true;
+            select.appendChild(o);
+          });
+        };
+      })(el, curSalesRep);
+      if (staffData.length) { buildSalesRepSelect(staffData); }
+      else { fetch('/api/staff').then(function(r){return r.json();}).then(buildSalesRepSelect).catch(function(){}); }
+    } else if (field === 'directorOverride') {
+      el = document.createElement('select');
+      el.innerHTML = '<option value="">— Select director —</option>';
+      var curDir = raw;
+      if (curDir) { el.innerHTML += '<option value="' + escAttr(curDir) + '" selected>' + escHtml(curDir) + '</option>'; }
+      if (directorsData.length) {
+        el.innerHTML = '<option value="">— Select director —</option>';
+        directorsData.forEach(function(d) {
+          var o = document.createElement('option'); o.value = d.name; o.textContent = d.name;
+          if (d.name === curDir) o.selected = true;
+          el.appendChild(o);
+        });
+      } else {
+        fetch('/api/directors').then(function(r){return r.json();}).then(function(dirs) {
+          directorsData = dirs;
+          el.innerHTML = '<option value="">— Select director —</option>';
+          dirs.forEach(function(d) { var o=document.createElement('option'); o.value=d.name; o.textContent=d.name; if(d.name===curDir) o.selected=true; el.appendChild(o); });
+        }).catch(function(){});
+      }
+    } else if (field.indexOf('comp-dir-') === 0) {
+      // Competition director row — dropdown of all people
+      var curCompId = raw;
+      el = document.createElement('select');
+      el.innerHTML = '<option value="">— Select director —</option>';
+      var buildCompDirSelect = (function(select, currentId) {
+        return function(people) {
+          allPeopleData = people;
+          select.innerHTML = '<option value="">— Select director —</option>';
+          people.forEach(function(p) {
+            var o = document.createElement('option');
+            o.value = p.id;
+            o.textContent = p.name + (p.company ? ' / ' + p.company : '');
+            if (p.id === currentId) o.selected = true;
+            select.appendChild(o);
+          });
+        };
+      })(el, curCompId);
+      if (allPeopleData.length) { buildCompDirSelect(allPeopleData); }
+      else { fetch('/api/people').then(function(r){return r.json();}).then(buildCompDirSelect).catch(function(){}); }
+    } else if (FIELD_TYPES[field] === 'textarea') {
+      el = document.createElement('textarea');
+      el.rows = Math.max(2, (raw.match(/\n/g)||[]).length + 2);
+    } else if (FIELD_TYPES[field] === 'date') {
+      el = document.createElement('input'); el.type = 'date';
+    } else {
+      // Default: multi-line textarea so users can add line breaks
+      el = document.createElement('textarea');
+      el.rows = Math.max(2, (raw.match(/\n/g)||[]).length + 2);
+    }
+    el.className = 'edit-input'; el.value = raw; el.style.width = '100%';
+    td.innerHTML = ''; td.style.whiteSpace = 'normal'; td.appendChild(el);
+  });
+}
+
+function escAttr(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function exitEditMode(restore) {
+  document.getElementById('sheet-wrap').classList.remove('editing');
+  document.getElementById('btn-edit').style.display   = '';
+  document.getElementById('btn-save').style.display   = 'none';
+  document.getElementById('btn-cancel').style.display = 'none';
+  document.getElementById('edit-status').textContent  = '';
+  pendingAgencyId = null;
+  // Remove spot click handlers
+  document.querySelectorAll('td[data-spot-type]').forEach(function(td) { td.onclick = null; });
+  if (restore && currentData) document.getElementById('sheet-body').innerHTML = buildSheet(currentData);
+}
+
+async function saveChanges() {
+  var status = document.getElementById('edit-status');
+  status.textContent = 'Saving…';
+  document.getElementById('btn-save').disabled   = true;
+  document.getElementById('btn-cancel').disabled = true;
+
+  // Collect regular field updates
+  var updates = {};
+  var spotTitleRows = [];
+  document.querySelectorAll('td[data-field]').forEach(function(td) {
+    var field = td.getAttribute('data-field');
+    var inp = td.querySelector('.edit-input');
+    if (!inp) return;
+    if (field === 'spotTitleRow') {
+      var ri = parseInt(td.getAttribute('data-spot-title-row') || '0');
+      spotTitleRows[ri] = inp.value;
+    } else if (field === 'assignedTo') {
+      updates.assignedTo = inp.value;
+    } else if (field.indexOf('comp-dir-') === 0) {
+      // handled separately below
+    } else {
+      updates[field] = inp.value;
+    }
+  });
+  // Combine per-row titles into single newline-delimited spotTitle
+  updates.spotTitle = spotTitleRows.map(function(t){ return t || ''; }).join('\n').replace(/\n+$/, '');
+
+  // Include pending agency ID if agency was changed
+  if (pendingAgencyId) {
+    updates.agencyId = pendingAgencyId;
+  }
+
+  
+  // Build spotGrid array from per-row edits
+  var gridArr = [];
+  for (var i = 0; i < NUM_SPOT_ROWS; i++) {
+    var row = spotGridEdit[i] || { l: [], d: [], otherL: '' };
+    gridArr.push({ l: row.l, d: row.d, otherL: row.otherL || '' });
+  }
+  updates.spotGrid = gridArr;
+
+  try {
+    var id = new URLSearchParams(window.location.search).get('id');
+    if (new URLSearchParams(window.location.search).get('director')) { delete updates.directorOverride; }
+    var res = await fetch('/api/lead?id=' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    var body = await res.json();
+    if (!res.ok) throw new Error(body.error || 'Save failed');
+
+    // Update currentData to reflect saved values
+    Object.keys(updates).forEach(function(k) {
+      if (k === 'spotGrid' || k === 'agencyId' || k === 'competitionIds') return;
+      currentData[k] = updates[k];
+    });
+    currentData.spotGrid = gridArr;
+    if (updates.agencyId) {
+      currentData.agencyId = updates.agencyId;
+      var saved = agenciesData.find(function(a) { return a.id === updates.agencyId; });
+      if (saved) {
+        currentData.agency = saved.name;
+        currentData.agencyAddress = saved.address;
+        currentData.agencyPhone = saved.phone;
+      }
+    }
+        pendingAgencyId = null;
+
+    exitEditMode(true);
+    document.getElementById('edit-status').textContent = '✓ Saved';
+    setTimeout(function(){ document.getElementById('edit-status').textContent = ''; }, 3000);
+  } catch(err) {
+    status.textContent = '✗ ' + err.message;
+    document.getElementById('btn-save').disabled   = false;
+    document.getElementById('btn-cancel').disabled = false;
+  }
+}
+
+/* ── LOAD DIRECTORS ────────────────────────────────────────── */
+function loadDirectorDatalist() {
+  fetch('/api/directors').then(function(r){return r.json();}).then(function(dirs) {
+    directorsData = dirs;
+    var dl = document.getElementById('dl-directors');
+    if (dl) { dl.innerHTML = ''; dirs.forEach(function(d) { var o=document.createElement('option'); o.value=d.name; dl.appendChild(o); }); }
+  }).catch(function(){});
+}
+
+/* ── LOAD STAFF (for Sales Rep dropdown) ──────────────────── */
+function loadStaff() {
+  fetch('/api/staff').then(function(r){return r.json();}).then(function(list) {
+    staffData = list;
+  }).catch(function(){});
+}
+
+/* ── LOAD AGENCIES DATALIST ────────────────────────────────── */
+function loadAgenciesDatalist() {
+  fetch('/api/agencies').then(function(r){return r.json();}).then(function(list) {
+    agenciesData = list;
+    var dl = document.getElementById('dl-agencies');
+    dl.innerHTML = '';
+    list.forEach(function(a) {
+      var opt = document.createElement('option'); opt.value = a.name.trim(); dl.appendChild(opt);
+    });
+  }).catch(function(){});
+}
+
+/* ── INIT ──────────────────────────────────────────────────── */
+async function init() {
+  try {
+    var saved = localStorage.getItem('bueno-brand');
+    if (saved && saved !== '#1F3864') { document.documentElement.style.setProperty('--brand', saved); document.getElementById('brand-colour').value = saved; }
+    if (localStorage.getItem('bueno-colour-hidden') === '1') { document.getElementById('colour-wrap').style.display = 'none'; }
+  } catch(e) {}
+
+  var id = new URLSearchParams(window.location.search).get('id');
+  if (!id || !/^rec[A-Za-z0-9]{14}$/.test(id)) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display   = 'flex';
+    document.getElementById('error-detail').textContent = 'No valid record ID in URL. Add ?id=RECORD_ID to the URL.';
+    return;
+  }
+
+  loadDirectorDatalist();
+  loadAgenciesDatalist();
+  loadStaff();
+
+  try {
+    var director = new URLSearchParams(window.location.search).get('director');
+    var res = await fetch('/api/lead?id=' + encodeURIComponent(id) + (director ? '&director=' + encodeURIComponent(director) : ''));
+    if (!res.ok) { var b = await res.json().catch(function(){return{};}); throw new Error(b.error || 'HTTP ' + res.status); }
+    var data = await res.json();
+    document.getElementById('sheet-body').innerHTML = buildSheet(data);
+    document.title = 'Bueno Bid Spec' + (data.client ? ' — ' + data.client : '');
+    document.getElementById('loading').style.display   = 'none';
+    document.getElementById('sheet-wrap').style.display = 'block';
+  } catch(err) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display   = 'flex';
+    document.getElementById('error-detail').textContent = err.message;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
